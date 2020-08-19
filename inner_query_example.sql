@@ -14,7 +14,7 @@ select rownum, t.* from tab t;
 
 
 /**
-* Query to find first three max salaried wmployee details
+* Query to find first top three max salaried wmployee details
 */
 select * from 
 (select * from employee order by sal desc) 
