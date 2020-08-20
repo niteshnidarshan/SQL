@@ -28,7 +28,7 @@ select deptno from dept;
 select deptno from emp 
 minus 
 select deptno from dept;
-
+**/
 create table employee as select * from scott.emp;
 
 create table department as select * from scott.dept;
@@ -49,7 +49,6 @@ select deptno from employee
 minus
 select deptno from department;
 /
-**/
 /****Question****
 *Query to display last three records from the table
 *
