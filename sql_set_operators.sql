@@ -1,5 +1,5 @@
-Set Operators
-===================
+/***Set Operators***
+*===================
 1) Union
 2) Union all
 3) Intersect
@@ -49,7 +49,7 @@ select deptno from employee
 minus
 select deptno from department;
 /
-
+**/
 /****Question****
 *Query to display last three records from the table
 *
