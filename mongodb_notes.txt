@@ -1,0 +1,1059 @@
+MongoDB - MongoDB is an open-source, document database designed for ease of development and scaling.
+	It provides high performance, high availability, and automatic scaling.
+
+Document Database :A record in MongoDB is a document, which is a data structure composed of field and value pairs. 
+		MongoDB documents are similar to JSON objects. The values of fields may include other documents, arrays, and arrays of documents.
+
+		For e.g.:
+		----------
+		{
+			name : "Sue"
+			age : 26
+			status : "A"
+			groups : ["news","sports"]
+		}	
+
+	The advantages of using documents are:
+
+		# Documents (i.e. objects) correspond to native data types in many programming languages.
+		# Embedded documents and arrays reduce need for expensive joins.
+		# Dynamic schema supports fluent polymorphism.
+
+	Key Features
+	--------------------
+	# High Performance
+
+		MongoDB provides high performance data persistence. In particular,
+
+			* Support for embedded data models reduces I/O activity on database system.
+			* Indexes support faster queries and can include keys from embedded documents and arrays.
+
+	# Rich Query Language
+
+		MongoDB supports a rich query language to support read and write operations (CRUD) as well as:
+
+			* Data Aggregation
+			* Text Search and Geospatial Queries.
+
+	# High Availability
+
+		MongoDB’s replication facility, called replica set, provides:
+
+			* automatic failover and
+			* data redundancy.
+
+
+		A replica set is a group of MongoDB servers that maintain the same data set, providing redundancy and increasing data availability.
+
+	# Horizontal Scalability
+
+		* MongoDB provides horizontal scalability as part of its core functionality:
+
+		* Sharding distributes data across a cluster of machines.
+			Starting in 3.4, MongoDB supports creating zones of data based on the shard key. 
+			In a balanced cluster, MongoDB directs reads and writes covered by a zone only to 
+			those shards inside the zone. See the Zones manual page for more information.
+	
+	# Support for Multiple Storage Engines
+
+
+
+
+Database - A set of collections. A database serves as a namespace for collections.
+		In MongoDB, databases hold collections of documents.
+
+	# Create a Database
+
+		If a database does not exist, MongoDB creates the database when you first store data for that database. 
+		As such, you can switch to a non-existent database and perform the 		
+		following operation in the mongo shell:
+
+		> use myNewDB
+
+		> db.myNewCollection1.insertOne( { x: 1 } )
+
+	The insertOne() operation creates both the database myNewDB and the collection myNewCollection1 if they do not already exist.
+
+
+Collection - MongoDB stores documents in collections. Collections are analogous to tables in relational databases.
+
+	Collection stores individual records called documents. 
+	
+	Records of similar items within collections.
+
+	Each database & collection combination define a namespace.
+
+	We typically reference a specific collection by expressing the name of the database follwed by a dot followed by the name of a collection.
+
+	database.collection.document 
+
+	for e.g.
+	--------------
+	city.neighborhoods
+
+
+	# Create a Collection
+
+		If a collection does not exist, MongoDB creates the collection when you first store data for that collection.
+
+		> db.myNewCollection2.insertOne( { x: 1 } )
+		> db.myNewCollection3.createIndex( { y: 1 } )
+
+	# Explicit Creation
+
+		MongoDB provides the db.createCollection() method to explicitly create a collection with various options, 
+		such as setting the maximum size or the documentation validation rules. 
+
+
+Datatypes : int32, double, string, date, document, array,  object & coordinate(for geospatial).
+
+	Compass user interface, MongoDB provides specific support for documents, arrays, and geospatial data. 
+	Rainfall and air pressure may be represented as decimal, integer, or other types of values, 
+	but neither Compass nor MongoDB recognise any type of weather data in order to provide specialised support.
+
+
+Documents : MongoDB stores data records as BSON documents. 
+	BSON is a binary representation of JSON documents, though it contains more data types than JSON.
+
+	# Document Structure : MongoDB documents are composed of field-and-value pairs and have the following structure:
+
+		{
+   			field1: value1,
+   			field2: value2,
+   			field3: value3,
+   			...
+   			fieldN: valueN
+		}
+
+		The value of a field can be any of the BSON data types, including other documents, arrays, and arrays of documents. 
+		For example, the following document contains values of varying types:
+
+		var mydoc = {
+               			_id: ObjectId("5099803df3f4948bd2f98391"),
+		               name: { first: "Alan", last: "Turing" },
+              			birth: new Date('Jun 23, 1912'),
+		               death: new Date('Jun 07, 1954'),
+		               contribs: [ "Turing machine", "Turing test", "Turingery" ],
+		               views : NumberLong(1250000)
+	            }
+
+
+		The above fields have the following data types:
+
+			* _id holds an ObjectId.
+			* name holds an embedded document that contains the fields first and last.
+			* birth and death hold values of the Date type.
+			* contribs holds an array of strings.
+			* views holds a value of the NumberLong type.
+
+
+	# Field Names
+
+		Field names are strings.
+
+		Documents have the following restrictions on field names:
+
+			* The field name _id is reserved for use as a primary key; its value must be unique in the collection, is immutable, and may be of any type other than an array.
+			* The field names cannot start with the dollar sign ($) character.
+			* The field names cannot contain the dot (.) character.
+			* The field names cannot contain the null character.
+
+
+	# Embedded Documents
+
+		To specify or access a field of an embedded document with dot notation, concatenate the embedded document name with the dot (.) and the field name, and enclose in quotes:
+
+		"<embedded document>.<field>"
+
+			For e.g.
+			---------------
+
+			{
+   				...
+  				name: { first: "Alan", last: "Turing" },
+				contact: { phone: { type: "cell", number: "111-222-3333" } },
+				...
+			}
+
+
+			* To specify the field named last in the name field, use the dot notation "name.last".
+			* To specify the number in the phone document in the contact field, use the dot notation "contact.phone.number".
+
+
+	# Document Size Limit
+
+		The maximum BSON document size is 16 megabytes.
+
+		The maximum document size helps ensure that a single document cannot use excessive amount of RAM or, 
+		during transmission, excessive amount of bandwidth. 
+		To store documents larger than the maximum size, MongoDB provides the GridFS API. 
+
+
+
+Compass - Compass is a visual interface to MongoDB. It allows us to configure the database & explore the data it contains.
+	We will use Compass to explore a few data sets. 
+
+Atlas(A free tier Cluster) - Atlas is MongoDB's database as a service offering. MongoDB university has created a database cluster in Atlas specifically for use in this course. 
+	In a moment, we will connect to a MongoDB cluster. This cluster is running in Atlas, which is MongoDB's hosted MongoDB as a service platform.
+	So, MongoDB Atlas is a fast, easy, and free way to get started with MongoDB.
+
+
+
+http://www.json.org
+
+
+Chapter 2
+=======================
+CRUD Operation
+-----------------------
+Installing the mongo shell
+------------------------------
+Compass doesn't fully support the MongoDB query Language.
+So in order to explore all CRUD operations in MongoDB, we are going to need to install the mongo shell.
+
+The mongo shell is a text-based client that we will be using by means of whatever command line interface you have available to you on your system. 
+
+So for this we need to install Enterprise Server. 
+Enterprise server is bundled with a number of executables that are part of the MongoDB ecosystem, including the mongo shell.
+
+
+
+Google - Mongodb download center - Enterprise Server tab - download
+
+move it to home directory (NiteshNidarshan) - extract 
+
+Here 'mongo' in the executable list is the mongo shell. And 'mongod' is the executable for the mongodb server.
+
+
+To execute the mongo shell conveniently, need to update our path environment variable at [.bash_profile]. 
+The path tell where the program exist to run.
+In finder we can search the hidden files with the [COMMAND+SHIFT+.(dot)].
+If .bash_profile available, update here( at home directory) only else create it through textEdit.
+
+
+.bash_profile content
+----------------------
+export PS1='$ ' //This command sets the prompt for terminal application.
+
+export PATH="~/mongodb-osx-x86_64-enterprise-3.6.5/bin:$PATH" //This is the current mongo shell path to set at PATH variable.
+
+export PATH=${PATH}:/usr/local/mysql/bin/   //It is the existing configuration available. [ : says other program]
+
+
+
+bash shell terminal
+--------------------------
+Now to open the bash(mongo shell) from .bash_profile textedit [COMMAND+SPACE], type terminal - it will open the bash shell terminal with $.
+
+To see the environment variable in bash shell use the commands -
+
+$ echo $PS1
+
+$ echo $PATH  //It will show whether u set ur mongo shell path
+
+$ mongo --nodb  // Command to run mongo
+
+>
+
+
+
+Connecting to Atlas Cluster from the mongo Shell
+-------------------------------------------------------
+$ mongo "mongodb://cluster0-shard-00-00-jxeqq.mongodb.net:27017,cluster0-shard-00-01-jxeqq.mongodb.net:27017,cluster0-shard-00-02-jxeqq.mongodb.net:27017/test?replicaSet=Cluster0-shard-0" --authenticationDatabase admin --ssl --username m001-student --password m001-mongodb-basics
+
+
+Because we are connecting to a cluster, we want to give the mongo shell the name of all the servers in this cluster.
+Those are listed at [//cluster0-shard-00-00-jxeqq.mongodb.net:27017,cluster0-shard-00-01-jxeqq.mongodb.net:27017,cluster0-shard-00-02-jxeqq.mongodb.net:27017/].
+
+'test' indicates that we are going to connect to this cluster, and we are going to connect to a database called 'test'.
+Now if we are prefer to connect to a different database, we can change this to one of the databases we know is available in our Atlas cluster.
+Let's do the '100-YearWeather' database. This database has a collection in it called data, where all of the weather readings are found
+
+'ssl' is the fact that we are making a secure connection to this cluster. A we did when connecting with Compass, we were using an encrypted connection via SSL. and supplying the same username
+and password we did to connect with Compass.
+
+
+
+MongoDB is designed to provide high-availability access to your data. 
+It does this by enabling you to maintain redundant copies of your data in a cluster called a replica set.
+We configures our Atlas cluster to be a three-server replica set in order to help ensure you will always have access to the data.
+Here, thousands of client may access this primary server, so may possible server goes down due to software/ hardware failure, 
+so one of the other servers will step in to continue serving data to clients.
+
+
+After running the above command we get the PRIMARY> prompt. 
+The shell will always connect to the PRIMARY for the cluster as specified
+here because its the primary to which most reads typically directed and to which all writes for a MongoDB cluster must be directed.
+Only primary in a cluster can accept writes, and for any cluster, there is one and only one primary.
+
+
+PRIMARY> show collections  // to show collections under the connected database
+PRIMARY> use <database> // to switch databases
+
+PRIMARY> use video
+PRIMARY> db.movies.find().pretty() // It will show the data sets of movies
+
+
+
+CRUD [CREATE, READ, UPDATE & DELETE]
+=============================================
+Three of them are changing the data in the collection in one way or another.
+
+
+Create an Atlas Sandbox Cluster - The Atlas free tier for testing & educational purposes.
+--------------------------------
+1) Register @ To begin creating your Atlas Sandbox cluster, 
+visit https://cloud.mongodb.com/links/registerForAtlas and complete the account creation form you see on that page.
+
+2) Create a Group Name - Groups are how we manage access to Atlas Clusters. like m001/ nitesh001 ...
+
+	Once you have created a group, go ahead and build a cluster.
+	Select the FREE tier like M0 instance size.
+	Then enter user/password
+
+3) Now you can go ahead and deploy your cluster. It is free. remember user/password.
+
+4) Now once you have deployed your cluster, need to wait just a minute for the cluster to come up.
+	Once deployed, the cluster is ready for connections.
+	Once connect, we need to change a security setting to make it easy for us to access the cluster from anywhere.
+	Click on the security tab, and then on the IP Whitelist tab.
+	Click add IP address, and Allow Access From Anywhere.
+
+5) After deployed the cluster, select connect & scroll down - select 'Connect via the Mongo Shell' - copy the link
+
+6) Go to shell terminal, paste it, modify user/password
+
+user : m001-student
+password : m001-mongodb-basics
+
+$ mongo "mongodb+srv://sandbox-k8oe6.mongodb.net/test" --username m001-student
+
+$ password m001-mongodb-basics
+
+PRIMARY> show dbs // To show all the database available in the cluster.
+
+To add database - movies in to the sandbox cluster
+---------------------------------------------------
+1) Create a folder - 'M001' in to the home directory - niteshnidarshan
+
+2) download the 'loadMovieDetailsDataset.js' from handout and paste it inside 'M001'
+
+3) go to bash sell 
+
+$ quit()
+
+4) Go to your home directory & check weather you are in home or not
+
+$ pwd 
+
+$ cd M001
+
+$ ls
+
+loadMovieDetailsDataset.js
+
+$ less loadMovieDetailsDataset.js // to see the javascript data
+
+5) To load this movie database need to run this java script file though mongo shell by using the load command.
+
+$ mongo "mongodb+srv://sandbox-k8oe6.mongodb.net/test" --username m001-student
+
+$ password m001-mongodb-basics
+
+$ load("loadMovieDetailsDataset.js")
+
+true
+
+$ show dbs 
+
+$ use video
+
+
+$ mongo "mongodb+srv://cluster0.zdcig.mongodb.net" --username m220j
+
+$ password : m220j
+
+$PRIMARY> show dbs [To show all databases]
+$PRIMARY> use sample_mflix [To set current database]
+$PRIMARY> show collections [To show all collections(tables) in current database]
+$PRIMARY> show users       [show users in current database]
+$PRIMARY> show profile     [show most recent system.profile entries with time >= 1ms]
+$PRIMARY> db.help() [list all db related commands]
+$PRIMARY> db.getName() [To know which db are you in]
+
+To find keys structure of a collection
+----------------------------------------
+$PRIMARY> var desc = db.movies.findOne();
+$PRIMARY> for(var key in desc){print(key);}
+
+
+$PRIMARY> db.movies.find().pretty()
+$PRIMARY> db.movies.find({"directors":"Charles Swickard"}).pretty()
+$PRIMARY> db.movies.find({"year":1992}).pretty()
+$PRIMARY> db.movies.find({"year":1991}).sort({"title":1}).pretty()
+$PRIMARY> db.movies.find({cast: "Salma Hayek"}).limit(3).pretty() [will show first 3 records]
+
+$PRIMARY> db.movies.find({cast: { $all: ["Salma Hayek", "Johnny Depp"] }}).limit(1).pretty()
+
+$PRIMARY> db.movies.find({
+         cast: "Tom Hanks",
+         year: { $gte: 1990, $lt: 2005 },
+         metacritic: { $gte: 80 }
+     }).pretty()
+
+
+
+Connecting to Sandbox cluster from Compass(visual mongo IDE)
+==================================================================
+1) Obtain the url
+
+	1.1) Go to the sandbox cluster
+	1.2) select 'Sandbox' inside the Clusters
+	1.3) click on primary link from the list
+
+		Here you can see sandbox-shard-00-00-k8oe6.mongodb.net:27017
+		This is the request url to connect Compass(do not paste port into the url)
+
+2) Open MongoDB Compass
+	Paste the hostname url : sandbox-shard-00-00-k8oe6.mongodb.net
+	default port : 27017
+	user : m001-student
+	password : m001-mongodb-basics
+
+Here you can access all the db.
+
+
+Insert collection/document & data into the cluster's movie database through MongoDB Compass
+---------------------------------------------------------------------------------------------- 
+By simply select 'create collection'/ 'create document'
+Here we can insert data with datatypes and we can update the data types also.
+
+
+
+Insert collection/document & data into the cluster's movie database through mongo Shell
+----------------------------------------------------------------------------------------------
+PRIMARY>use video
+
+PRIMARY> show collections
+
+PRIMARY> db //It shows which database you are in
+
+insertOne() - This is a command to insert data into the collection. 
+		This command will create the new document if the given document is not available.
+		All documents in MongoDB must contain an underscore _ID field which may contain the object_id.
+		if we don't supply id, mongo will create that.
+
+PRIMARY> db.moviesScratch.insertOne({title:"Star Trek II: The Warth of Khan",year:1982,imdb:"tt0084726"}) //_id will be created by mongo with object_id
+
+PRIMARY> db.moviesScratch.insertOne({_id:"tt0084726",title:"Star Trek II: The Warth of Khan",year:1982,imdb:"tt0084726"}) //user defined _id/ object_id
+
+response : true;
+object_id : some id;
+
+
+Batch Operation [C]
+----------------------------------
+Ordered Insert [default] // If error occurs/duplicate id found, till that it will insert data and onwards will not be inserted
+Un Ordered Insert 
+	>insertMany([{document1},{document2} ... ], {"ordered":false}); // If duplicate id found, it will skip those & insert rest of the documents.
+
+
+
+
+Read/Find() filters [Queries on scaler fields]
+---------------------------------------------------
+In compass, we can use Filter box to find the documents
+	like {field:'value',field:'value',...} or {wind.type:"C"}
+
+	. represents object 
+
+	You need to provide quotes when using the dot notation to express queries.
+	It is good practice to surround keys with quotes in any situation.
+		
+
+In mongo Shell:
+	> db.movies.find({field:'value',field:'value',...}).pretty()
+	> db.collection.find(<query>).count()
+
+	> db.movieDetails.find({"awards.wins": 2, "awards.nominations": 2}).count()
+
+	> db.movieDetails.find({"awards.nominations": 10,"rated":"PG"}).count()
+
+
+Reading Documents : Array Fields [The MongoDB Query Language + Atlas]
+----------------------------------------------------------------------
+Exact matches for Array Fields
+---------------------------------
+> db.movies.find({cast:["Jeff Bridges","Tim Robbins"]}) //show all the documents where cast having ["Jeff Bridges","Tim Robbins"]
+
+It's a documentary called.[the exact search pattern in array].
+
+It will show the documents with exact matches but if we want to search the cast for specific array index -
+
+{cast.0: "Jeff Bridges"} //It will return the document only if the cast name specified at cast[0] position.
+
+
+	> db.movieDetails.find({"writers":["Ethan Coen","Joel Coen"]}).pretty()
+
+Question : How many movies in the movieDetails collection list "Family" among its genres?
+	> db.movieDetails.find({genres:"Family"}).count()
+
+Question : How many movies in the movieDetails collection list "Western" second among its genres?
+	> db.movieDetails.find({"genres.1":"Western"}).count()
+
+
+
+Cursor
+====================
+The find() returns a cursor.
+A cursor is essentially a pointer to the current location in a result set.
+
+For queries that return more than just a few documents, MongoDB will return the results in batches to our client.
+And remember that the mongo shell is a client.
+
+We use the cursor in our client to iterate through the results. In the Sell, the cursor is automatically iterated up to 20 times to print an initial set of search results, as we see here in response to this query. So when this query was issued, the server returned a cursor to the shell, and the shell requested the next item in the result set from the cursor 20 times.
+So, it displays first 20 results from this query.
+
+Now as we iterate through a cursor and reach the end of a batch of query results, if there are more results, iterating the cursor will trigger a getMore() operation to retrieve the next batch of results.
+
+The shell show first 20 results, to display more need to type - [it] it means iterate.
+
+	> db.movies.find({"cast.0":"Jeff Bridges"}).pretty()
+
+
+Projections
+============================
+Projections reduce network overhead and processing requirements by limiting the fields that are returned in results documents.
+By default, MongoDB returns all fields in all matching documents for queries.
+
+We can define a projection as the second argument to the find method.
+
+If we want to limit our result documents so that they just contain a title, I can do that using the following syntax.
+
+So, using this syntax I can create a projection where results from this query will return just the title and actually, the title and the underscore ID.
+
+	> db.movieDetails.find({genres:"Family, Adventure"}, {title:1})
+
+1 - include field
+0 - exclude field
+
+If we don't want to show _id field
+	> db.movieDetails.find({genres:"Family, Adventure"}, {title:1, _id:0})
+
+
+Following will show all the fields except for the ones I explicitly excluded here.
+	> db.movieDetails.find({genres:"Family, Adventure"}, {viewerRating:0, viewerVotes:0, runtime:0, _id:0})
+
+
+Update 
+========================
+updateOne() : It will update only the first document if the filter maches
+-------------------------------------------------------------------------------
+> db.movieDetails.updateOne({
+	title: "The Martian"
+},{
+	$set: {
+		poster: "http://ia.media-imdb.com/images/M/xxxx"
+	}
+})
+
+
+Here, updateOne({filter},{$set:{_What_To_Update_}}).
+
+$set operator takes a document as an argument. It's expecting a document that has one or more fields listed.
+$set updates the document matching the filter such that all key value pairs in the update document are reflected in the new version of the document we are updating.
+For this call to updateOne(), $set will add a field called poster, with this URL as the value.
+If there was an existing poster field in the document, this would modify its value.
+
+Update operators, as you might imagine, are not limited to scalar updates, like we just performed. We can update fields with any legal value.
+
+> db.movieDetails.updateOne({
+	title: "The Martian"
+},{
+	$set: {
+		"awards" : {
+			"wins": 8,
+			"nominations":14
+			"text": "Nominated for 3 Golden Globes. Another 8 wins & 14 nominations."
+		}
+	}
+})
+
+
+
+update operators [visit mongo db documentation]
+----------------------------------------------------
+$set : Sets the value of a field in a document.
+
+$unset : Removes the specified field in a document.
+ 
+$inc : Increments the value of the field by the specified amount.
+
+$mul : Multiplies the value of the field by the specified amount.
+
+$rename	: Renames a field.
+
+$setOnInsert : Sets the value of a field if an update results in an insert of a document has no effects on update operations that modify existing documents.
+
+$currentDate : Sets the value of a field to current date, either as a Date or a Timestamp. 
+
+
+$inc example
+-------------
+> db.movieDetails.updateOne({
+	title: "The Martian"
+},{
+	$inc: {
+		"tomato.reviews":3,
+		"tomato.userReviews":25	
+	}
+})
+
+
+update operators for array
+-----------------------------
+$addToSet : Adds elements to an array only if the do not already exist in the set.
+
+$pop : Removes the first or last item of an array.
+
+$pullAll : Removes all matching values from an array.
+
+$push : Adds an item to an array
+
+
+updateMany()
+---------------
+update many will make the same modification to all documents that match the filter.
+
+finding out null values fields
+{rated : null, poster: null}
+
+
+> db.movieDetails.updateMany({
+	rated : null
+},{
+	$unset: {
+		rated:""
+	}
+})
+
+here $unset operator will remove all fields listed here.
+
+
+
+Upserts
+===============
+The situation when update operation actually create new documents. we call these operations upserts.
+
+> db.movieDetails.updateOne({
+	"imdb.id":detail.imdb.id
+},{
+	$set: detail
+},{
+	upsert: true
+});
+
+Here, o make use of the $set operator, the net effect of this was that, if the document already existed, I essentially replaced it with exactly the same detail data.
+If it did not already exist, updateOne performed an upsert.
+Using updateOne with the upsert option means that I did not need to first query the collection to see whether the document already existed and then do a second query to insert,
+I let MongoDB do all the work for me.
+So, [upsert = true] means that if this filter does not match any documents in my collection, this document will be inserted in the collection.
+
+Update documents matching the filter, if there are none, insert the update document as a new document in the collection.
+
+
+replaceOne()
+------------------
+> detailDoc = db.movieDetails.findOne({"imdb.id":"tt4368814"}); // It will store the result document as "detailDoc" in a temp memory
+
+> db.movieDetails.replaceOne({"imdb.id": detailDoc.imdb.id}, detailDoc); //It will replace the "imdb.id" with "detailDoc.imdb.id"
+
+
+Mongo Shell is a full functioned javascript iterpretor.
+
+
+Delete
+=============
+> db.reviews.deleteOne({_id: ObjectId("59999xxxx")}); // Will delete the specified object_id review
+> db.reviews.deleteMany({reviewer_id:759723314}); // Will delete all the review having the same reviewer_id.
+
+
+Chapter 3#
+===========================
+Comparison Query Operators
+---------------------------
+	These are operators that allow us to match based on a field value relative to some other value.
+
+	For e.g.
+	-----------
+	In movieDetails collection, most documents have a field called runtime.
+	
+		Filter the movies that have a runtime greater than 90. 
+			> db.movieDetails.find({runtime:{$gt: 90}},{_id:0,title:1,runtime:1})
+
+		Filter the movies that have a runtime greater than 90 and less than 120.
+			> db.movieDetails.find({runtime:{$gt: 90, $lt:120}},{_id:0,title:1,runtime:1})
+			
+		Filter the movies that have a runtime greater than or equal to 90 and less than or equal to 120.
+			> db.movieDetails.find({runtime:{$gte: 90, $lte:120}},{_id:0,title:1,runtime:1})
+
+	With comparison operators were not limited to working with a single field, we can easily work with as many fields	
+	as we need to use combinations of comparison operators, other operators, & equality matches.
+	
+	Suppose we are interested in movies that are highly rated and also have long run times.
+	Let's mix up more by using an embedded document field, the tomato meter.
+
+	Now for tomato.meter, the max is 100. So what I will do is combine a selector for tomato.meter looking for values
+	that are greater than or equal to 95 with runtime looking for values that are greater than or equal to 180.   
+			
+		> db.movieDetails.find({runtime:{$gte:180},"tomato.meter": {$gte:95}}, {_id:0, title:1, runtime: 1})
+
+	$eq
+	$ne - not equal (i.e. anything other than)
+	$in - Matches any of the values specified in an array (It allows us to specify one or more values)
+	$nin- not in
+
+	A lot of movies in this collection have four rated a value of unrated.
+	So may be we just want to look at all documents that have actual rating such as PG, PG-13, R et cetera.
+
+		> db.movieDetails.find({rated: {$ne: "UNRATED"}},{_id:0, title:1, rated:1})
+
+		//$in filter values must be specified in an array
+		> db.movieDetails.find({rated: {$in: ["G","PG","PG-13"]}},{_id:0, title:1, rated:1})
+
+
+	# MongoDB supports a flexible data models.
+	 There are many use cases for documents in the same collection to have fields that other documents do not.
+	 In MongoDB data models, rather than store a null value for field, we will often simply not store at field at all.
+
+
+	Question : Using the $in operator, filter the video.movieDetails collection to determine how many movies list "Ethan Coen" or "Joel Coen" 			among their writers. Your filter should match all movies that list one of the Coen brothers as writers regardless of how many 			other writers are also listed. Select the number of movies matching this filter from the choices below.	
+		
+			> db.movieDetails.find({"writers":{$in:["Ethan Coen","Joel Coen"]}}).pretty()
+
+Chapter #4
+=================
+Element Operators - To search about the fields 
+-----------------
+Because of its flexible data model, MongoDB supports that allow us t detect the presence or absence of a given field.
+
+Also, as you know, although not usually a good idea, it is possible to have the same field in the collection have a different value type from one document to another. The MongoDB query language provides operators that enable us to handle both of these situations. They are called $exists and $type.
+
+$exists - Matches documents that have the specified field.
+$type - Selects documents if a field is of the specified type.
+
+$exists example
+-------------------
+@video.movies collection - Within the movies collection we have quite a few old movies. Many of these movies predate the MPAA movie rating system. What we might want to do with an application is test for the existence of a rating.
+
+In compass -
+{mpaaRating: {$exists: true}} - will look at those documents which has the field "mpaaRating".
+{mpaaRating: {$exists: false}} - will look at those documents which does not has the field "mpaaRating".
+
+In shell - 
+> db.movieDetails.find({"tomato.consensus": null}).pretty()
+
+	Sometime we may find the documents having the field(key) with 'null' values.
+	In order to support queries for nullish values and those that do not contain the key tomato.consensus at all.
+
+
+$type operator example
+--------------------------
+Take a look up for viewerRating field in video.movies collection - is that the value type for viewerRating really depends on which document we look at. Some have a value type for double, or int32 or some have a value type of undefined.  
+We can filter for documents that have a particular value type for a field using the $type operator.
+
+> db.movies.find({viewerRating: {$type: "int"}}).pretty()
+	
+	With This command, our filter will match only documents in the video.movies collection that have a value for viewerRating that is a 32-bit integer. 
+
+> db.movies.find({viewerRating: {$type: "double"}}).pretty()
+
+
+So, $exists & $type allow us to ask meta questions of sorts about documents in a collection.
+
+Question : Connect to our class Atlas cluster from the mongo shell or Compass and answer the following question. How many documents in the 100YWeatherSmall.data collection do NOT contain the key atmosphericPressureChange.
+
+Solution :
+You can find this answer in the mongo shell or in Compass.
+
+In the mongo shell, assuming you've connected to the M001 class Atlas cluster, you can issue the following commands to find this value.
+use 100YWeatherSmall
+db.data.find({atmosphericPressureChange: {$exists: false}}).count()
+
+In Compass, navigate to the 100YWeatherSmall.data collection and then apply the following filter in either the Schema or Documents view.
+{atmosphericPressureChange: {$exists: false}}
+
+
+
+Chapter #5 
+===============================
+Logical Operators
+-------------------------------
+$or - Joins query clauses with a logical OR returns all documents that match the conditions of either clause.
+$and - Joins query clauses with a logical AND returns all documents that match the conditions of both clauses.
+$not - Inverts the effect of a query expression and returns documents that do not match the query expression.
+$nor - Joins query clauses with a logical NOR returns all documents that fail to match both clauses.
+
+$or
+----------
+The $or operator performs a logical OR operation on an array of two or more <expressions> and selects the documents that satisfy at least one of the <expressions>. The $or has the following syntax:
+
+{ $or: [ { <expression1> }, { <expression2> }, ... , { <expressionN> } ] }
+
+for e.g.
+---------------
+db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
+
+This query will select all documents in the inventory collection where either the quantity field value is less than 20 or the price field value equals 10.
+
+$and
+------------
+Syntax: { $and: [ { <expression1> }, { <expression2> } , ... , { <expressionN> } ] }
+
+$and performs a logical AND operation on an array of two or more expressions (e.g. <expression1>, <expression2>, etc.) and selects the documents that satisfy all the expressions in the array. The $and operator uses short-circuit evaluation. If the first expression (e.g. <expression1>) evaluates to false, MongoDB will not evaluate the remaining expressions.
+
+MongoDB provides an implicit AND operation when specifying a comma separated list of expressions. Using an explicit AND with the $and operator is necessary when the same field or operator has to be specified in multiple expressions.
+
+for e.g.
+-----------
+# AND Queries With Multiple Expressions Specifying the Same Field
+
+db.inventory.find( { $and: [ { price: { $ne: 1.99 } }, { price: { $exists: true } } ] } )
+
+This query will select all documents in the inventory collection where:
+
+the price field value is not equal to 1.99 and
+the price field exists.
+This query can be also be constructed with an implicit AND operation by combining the operator expressions for the price field. For example, this query can be written as:
+
+db.inventory.find( { price: { $ne: 1.99, $exists: true } } )
+
+
+# AND Queries With Multiple Expressions Specifying the Same Operator
+
+db.inventory.find( {
+    $and : [
+        { $or : [ { price : 0.99 }, { price : 1.99 } ] },
+        { $or : [ { sale : true }, { qty : { $lt : 20 } } ] }
+    ]
+} )
+
+This query will select all documents where:
+
+the price field value equals 0.99 or 1.99, and
+the sale field value is equal to true or the qty field value is less than 20.
+This query cannot be constructed using an implicit AND operation, because it uses the $or operator more than once.
+
+Problem:
+-------------
+Connect to our class Atlas cluster from the mongo shell or Compass and view the ships.shipwrecks collection. In this collection, watlev describes the water level at the shipwreck site and depth describes how far below sea level the ship rests. How many documents in the ships.shipwrecks collection match either of the following criteria: watlev equal to "always dry" or depth equal to 0.
+
+Solution:
+----------
+{ $or: [ { watlev: "always dry"}, { depth: 0 } ] }
+
+
+> use ships
+
+> db.shipwrecks.find({$or: [{depth: 0}, {watlev: "always dry"}]}).count()
+
+
+Chapter #6
+================
+Array Operators - $all
+
+Now let's look at operators for array-valued fields. First, we will look at $all.
+
+$all - Matches arrays that contain all elements specified in the query.
+
+So, $all matches array fields against an array of elements.
+
+In order for a document to match a filter using $all, all the elements we are looking for must be included in that array field.
+
+> db.movieDetails.find({genres: {$all: ["Comedy", "Crime", "Drama"] }}, {_id:0, title:1, genres:1}).pretty()
+
+{usertype: {$all: ["Subscriber", "Anonymous", "Pay As You Go","Customer",null] }
+
+Problem:
+-------------
+Connect to our class Atlas cluster from the mongo shell or Compass and view the 100YWeatherSmall.data collection. The sections field in this collection identifies supplementary readings available in a given document by a three-character code. How many documents list: "AG1", "MD1", and "OA1" among the codes in their sections array. Your count should include all documents that include these three codes regardless of what other codes are also listed.
+
+Solution:
+-----------
+{sections: {$all: ["AG1", "MD1", "OA1"] }}
+
+> use 100YWeatherSmall
+
+> db.data.find({sections: {$all: ["AG1", "MD1", "OA1"]}}).count()
+
+
+
+Chapter #7
+================
+Array Operators - $size
+
+$size - Selects documents if the array field is a specified size.
+
+
+	It match documents based on the length of an array.
+
+> db.collection.find( { field: { $size: 2 } } );
+
+returns all documents in collection where field is an array with 2 elements. For instance, the above expression will return { field: [ red, green ] } and { field: [ apple, lime ] } but not { field: fruit } or { field: [ orange, lemon, grapefruit ] }. To match fields with only one element within an array use $size with a value of 1, as follows:
+
+> db.collection.find( { field: { $size: 1 } } );
+
+$size does not accept ranges of values. To select documents based on fields with different numbers of elements, create a counter field that you increment when you add elements to a field.
+
+Problem:
+------------
+Connect to our class Atlas cluster from the mongo shell or Compass and view the 100YWeatherSmall.data collection. How many documents in this collection contain exactly two elements in the sections array field?
+
+solution:
+------------
+{ sections: { $size: 2 } }
+
+> use 100YWeatherSmall
+
+> db.data.find({sections: {$size: 2}}).count()
+
+
+Chapter #8
+=================
+$elemMatch
+-----------------
+The $elemMatch operator matches documents that contain an array field with at least one element that matches all the specified query criteria.
+
+{ <field>: { $elemMatch: { <query1>, <query2>, ... } } }
+
+If you specify only a single <query> condition in the $elemMatch expression, you do not need to use $elemMatch.
+
+You cannot specify a $where expression as a query criterion for $elemMatch.
+
+following documents in the scores collection:
+{ _id: 1, results: [ 82, 85, 88 ] }
+{ _id: 2, results: [ 75, 88, 89 ] }
+
+The following query matches only those documents where the results array contains at least one element that is both greater than or equal to 80 and is less than 85.
+
+db.scores.find(
+   { results: { $elemMatch: { $gte: 80, $lt: 85 } } }
+)
+
+
+Problem:
+-----------
+In the M001 class Atlas cluster you will find a database added just for this week of the course. It is called results. Within this database you will find two collections: surveys and scores. Documents in the results.surveys collection have the following schema.
+
+{_id: ObjectId("5964e8e5f0df64e7bc2d7373"),
+ results: [{product: "abc", score: 10}, {product: "xyz", score: 9}]}
+The field called results that has an array as its value. This array contains survey results for products and lists the product name and the survey score for each product.
+
+How many documents in the results.surveys collection contain a score of 7 for the product, "abc"?
+
+Solution:
+--------------
+{ results: { $elemMatch: { product: "abc", score: {$eq: 7} } } }
+
+> use results
+
+> db.surveys.find({results: {$elemMatch: {product: "abc", score: 7}}}).count()
+
+
+Chapter #9
+================
+$regex operator
+----------------
+MongoDB supports a query operator that allows us to use regular expressions to match fields with string values.
+
+$regex - Selects documents where values match a specified regular expression.
+
+syntaxes
+-------------
+{ <field>: { $regex: /pattern/, $options: '<options>' } }
+{ <field>: { $regex: 'pattern', $options: '<options>' } }
+{ <field>: { $regex: /pattern/<options> } }
+
+In MongoDB, you can also use regular expression objects (i.e. /pattern/) to specify regular expressions:
+
+{ <field>: /pattern/<options> }
+
+For e.g.
+---------- 
+> db.movieDetails.find({}, {_id:0, "title": 1, "awards.text": 1}).pretty()
+
+> db.movieDetails.find({"awards.text": {$regex: /^Won .*/}}).pretty()
+
+> db.movieDetails.find({"awards.text": {$regex: /^Won .*/}}, {_id:0, "title": 1, "awards.text": 1}).pretty()
+
+
+> db.products.find( { description: { $regex: /S/ } } )
+
+
+Challenge Problem: Single Value in an Array of Integers
+=============================================================
+This problem is provided as a supplementary learning opportunity. It is somewhat more challenging that the ordinary labs. It is ungraded. We do not ask you submit an answer.
+
+In the M001 class Atlas cluster you will find a database added just for this week of the course. It is called results. Within this database you will find two collections: surveys and scores. Documents in the results.scores collection have the following schema.
+
+{"_id": ObjectId("5964e8e5f0df64e7bc2d7373"), "results": [75, 88, 89]}
+Connect to our class Atlas cluster from the mongo shell or Compass and view the results.scores collection. How many documents contain at least one score in the results array that is greater than or equal to 70 and less than 80?
+
+{ results: { $elemMatch: { $gte: 70, $lt: 80 } } }
+
+Problem: #1
+Connect to our class Atlas cluster from Compass and view the citybike.trips collection. Use the schema view and any filters you feel are necessary to determine the range of values for the usertype field. Which of the following are values found in this collection for the field usertype?
+
+Solution : "Subscriber", "Customer"
+
+
+Problem: #2
+Connect to our class Atlas cluster from Compass and view the 100YWeatherSmall.data collection. Using the Schema view, explore the wind field. The wind field has the value type of document. Which of the following best describes the schema of this embedded document?
+
+Solution: Three fields -- two with the value type "document", one with the value type "string"
+
+
+
+Problem: #3
+Connect to the M001 class Atlas cluster from Compass and view the 100YWeatherSmall.data collection. What is the value type of the "wind.speed.rate" field?
+
+Solution : double
+
+
+Problem: #4
+Please connect to the M001 class Atlas cluster. You may answer this question using either the mongo shell or Compass.
+
+For this question we will use the citibike database.
+
+How many documents in the citibike.trips collection have the key tripduration set to null? Ignore any documents that do not contain the tripduration key.
+
+Solution : 3
+
+
+Problem: #5
+Using the video.movieDetails collection, which of the queries below would produce output documents that resemble the following. Check all that apply.
+
+{ "title" : "P.S. I Love You" }
+{ "title" : "Love Actually" }
+{ "title" : "Shakespeare in Love" }
+NOTE: We are not asking you to consider specifically which documents would be output from the queries below, but rather what fields the output documents would contain.
+
+Solution :
+db.movieDetails.find({}, {title: 1, _id: 0})
+
+
+
+Problem: #6
+Please connect to the M001 class Atlas cluster from the mongo shell or Compass and view the video.movies collection. How many movies match the following criteria?
+
+The cast includes either of the following actors: "Jack Nicholson", "John Huston".
+The viewerRating is greater than 7.
+The mpaaRating is "R".
+
+Solution :
+---------------
+{$and: [{viewerRating: {$gt:7}},{mpaaRating:{$eq:"R"}}]},{cast:{$all:["Jack Nicholson","John Huston"]}}
+
+1
+
+
