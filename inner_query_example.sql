@@ -7,6 +7,22 @@ create table department as select * from scott.dept;
 select * from employee;
 select * from department;
 
+/**
+* To get row number
+*/
+select rownum, t.* from tab t;
+
+
+/**
+* Query to find first three max salaried wmployee details
+*/
+select * from 
+(select * from employee order by sal desc) 
+where 
+rownum <= 3
+order by sal desc;
+
+
 /****Question*******
  *   To select all the employees whose salaray is greater than his manager salary
  */
@@ -61,6 +77,29 @@ select ename from employee where empno = (select mgr from employee where ename =
 select * from employee where mgr = (select empno from employee where ename = 'BLAKE');
 
 /****Question*******
- *   Query to display employee details who are working under 'BLAKE'
+ *   Query to display maximum salary employee details who are working under 'BLAKE'
  */
+select * from employee where sal = (select max(sal) from employee where mgr = (select empno from employee where ename = 'BLAKE') )
+ 
+/****Question*******
+ *   Query to display the third max salaried employee
+ */
+select * from employee where sal = (select max(sal) from employee where sal < (select max(sal) from employee where sal < (select max(sal) from employee)));
+
+
+/****Question*******
+ *   Query to display the employee details working under sales department
+ */
+select * from employee where deptno = (select deptno from department where dname = 'SALES');
+
+select e.* from employee e, department d 
+where e.deptno = d.deptno
+and d.dname = 'SALES';
+
+/****Question*******
+ *   Query to display the employee details who are having maximum total salary under sales department
+ */
+select * from employee 
+where 
+sal+nvl(comm,0) = (select max(sal+nvl(comm,0)) from employee where deptno = (select deptno from department where dname = 'SALES'));
 
