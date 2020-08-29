@@ -1,0 +1,93 @@
+Spring Jdbc
+================
+- Spring JDBC API has provided a sample class - JdbcTemplate class
+
+- JdbcTemplate uses a datasource interface implementation for connection management.
+
+	DataSource interface implementation classes
+		- DriverManagerDataSource - By Spring
+		- BasicDataSource - By Apache
+		- HikariDataSource - By Hikari
+
+- To use jdbctemplate in spring, no need to add any dependency in pom.xml 
+	but if want other implementation then need to provide dependencies like - spring-context, spring-jdbc, db driver dependency.
+
+
+@Configuration
+@ComponentScan(basePackages="com.sathya")
+public class AppConfig {
+	@Bean
+	public DataSource dataSource(){
+		DriverManagerDataSource dmds = new DriverManagerDataSource();
+		dmds.setUrl();
+		dmds.setUser();
+		dmds.setPassword();
+
+		return dmds;
+	}
+
+	@Bean
+	public JdbcTemplate jdbcTemplate(){
+		return new JdbcTemplate(dataSource());
+	}
+}
+
+public class CustomerDaoImpl implements CustomerDao{
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+	public void addCustomerDetails(){
+		jdbcTemplate.update("Insert/update/delete query"); //managed and identified by jdbctemplate
+	}
+
+	public void loadCustomerDetails(){
+		jdbcTemplate.queryForList("Select * from XXX"); //returns multi row
+		jdbcTemplate.queryForMap("Select * from XXX where customer='x'"); //returns single row
+		
+		jdbcTemplate.execute("DROP TABLE CUSTOMER"); //TO execute DDL commands
+	}
+}
+
+1) execute() :
+	jdbcTemplate.execute("DROP TABLE CUSTOMER"); //TO execute DDL commands
+
+2) update()	:
+	int rowEffectCount = jdbcTemplate.update("insert into EMPLOYEES values(101, 'ABC', 3000.0, 20)");  
+
+	int rowEffectCount = jdbcTemplate.update("insert into EMPLOYEES values(?, ?, ?, ?)", eno, ename, sal, dno);  //second parameter is var args(...)
+	
+3) queryForMap() :
+	Map map = jdbcTemplate.queryForMap("select * from EMPLOYEES where empno = ?", eno); //To select a single record
+
+
+4) queryForList() :
+	List list = jdbcTemplate.queryForList("select * from EMPLOYEES where deptno in (101,102)"); //To select multi records - List of Maps(rows)
+
+5) queryForObject() :
+	//Single value query like - count(*), avg(column), particular value of salary etc.
+	jdbcTemplate.queryForObject("Query", Required return type, var args...);
+
+	int empCount = jdbcTemplate.queryForObject("select count(*) from EMPLOYEE where sal>?", Integer.class, salary);
+	Date doj = jdbcTemplate.queryForObject("select hiredate from EMPLOYEE where empno = ?", Date.class, empno);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
