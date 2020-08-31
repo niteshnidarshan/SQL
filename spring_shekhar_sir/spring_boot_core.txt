@@ -1,7 +1,7 @@
 Spring Jdbc
 ================
 - Spring JDBC API has provided a sample class - JdbcTemplate class
-
+- JdbcTemplate class depends on DataSource object.
 - JdbcTemplate uses a datasource interface implementation for connection management.
 
 	DataSource interface implementation classes
@@ -10,7 +10,7 @@ Spring Jdbc
 		- HikariDataSource - By Hikari
 
 - To use jdbctemplate in spring, no need to add any dependency in pom.xml 
-	but if want other implementation then need to provide dependencies like - spring-context, spring-jdbc, db driver dependency.
+	but if want other implementation then need to provide dependencies like - spring-context, spring-jdbc, db driver(ojdbc8) dependency.
 
 
 @Configuration
@@ -70,6 +70,106 @@ public class CustomerDaoImpl implements CustomerDao{
 	int empCount = jdbcTemplate.queryForObject("select count(*) from EMPLOYEE where sal>?", Integer.class, salary);
 	Date doj = jdbcTemplate.queryForObject("select hiredate from EMPLOYEE where empno = ?", Date.class, empno);
 
+
+SQL Plus
+----------
+$ connect system/tiger
+
+
+eclipse
+----------
+maven project - spring-web-quickstart
+pom.xml
+	- dependency 
+		org.springframework
+		spring-context
+		5.2.1.RELEASE
+
+		org.springframework
+		spring-jdbc
+		5.2.1.RELEASE
+
+		<groupId>com.oracle.database.jdbc</groupId>
+		<artifactId>ojdbc8</artifactId>
+		<version>19.3.0.0</version>
+
+package com.pack.dao;
+
+public interface planIntf {
+	void createTable();
+	void addRechargePlans();
+	Map findRechargePlanById(String planId);
+	List findAllRechargePlans();
+}
+
+package com.pack.dao.impl;
+@Repository
+public class PlanImpl implements planIntf {
+	
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+	@Override
+	public void createTable(){
+		jdbcTemplate.execute(" CREATE TABLE RECHARGE_PLAN(
+			PLANID VARCHAR2(10) PRIMARY KEY, 
+			AMOUNT NUMBER(9,2), 
+			VALIDITY NUMBER(8), 
+			DESCRIPTION VARCHAR2(40))
+			");
+	}
+	@Override
+	public void addRechargePlans(){
+		jdbcTemplate.update(" INSERT INTO RECHARGE_PLAN VALUES('PLN_222', 222.0, 24, 'PER DAY 1GB DATA, 222 SMS')");
+		jdbcTemplate.update(" INSERT INTO RECHARGE_PLAN VALUES('PLN_399', 399.0, 48, 'PER DAY 2GB DATA, 399 SMS')");
+		jdbcTemplate.update(" INSERT INTO RECHARGE_PLAN VALUES('PLN_549', 549.0, 56, 'PER DAY 3GB DATA, 549 SMS')");
+	}
+	@Override
+	public Map findRechargePlanById(String planId){
+		return jdbcTemplate.queryForMap("SELECT * FROM RECHARGE_PLAN WHERE PLANID=?", planId);
+	}
+	@Override
+	public List findAllRechargePlans(){
+		return jdbcTemplate.queryForList("SELECT * FROM RECHARGE_PLAN");
+	}
+}
+
+package com.pack.config;
+@Configuration
+@ComponentScan(basePackages="com.pack")
+public class AppConfig {
+	@Bean
+	public DataSource dataSource(){
+		DriverManagerDataSource dmds = new DriverManagerDataSource();
+		dmds.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+		dmds.setUrl("jdbc:oracle:thin@localhost:152:xe");
+		dmds.setUsername("system");
+		dmds.setPassword("tiger");
+
+		return dmds;
+	}
+
+	@Bean
+	public JdbcTemplate jdbcTemplate() {
+		return new JdbcTemplate(dataSource());
+	}
+}
+
+package com.pack.test;
+public class Test {
+	public static void main(String args[]) {
+		ApplicationContext context = AnnotationConfigApplicationContext(AppConfig.class);
+		PlanIntf pt = context.getBean("planImpl", PlanImpl.class);
+		pt.createTable();
+		pt.addRechargePlans();
+		Map map = pt. findRechargePlanById("PLN_399");
+		System.ot.println(map);
+		List list = pt. findAllRechargePlans();
+		System.ot.println(list);
+	}
+}
+
+		
 
 
 
