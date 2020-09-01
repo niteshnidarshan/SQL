@@ -1,5 +1,5 @@
-Spring Jdbc
-================
+Spring Jdbc - Jdbc Template
+================================
 - Spring JDBC API has provided a sample class - JdbcTemplate class
 - JdbcTemplate class depends on DataSource object.
 - JdbcTemplate uses a datasource interface implementation for connection management.
