@@ -1,0 +1,36 @@
+@SpringBootApplication
+---------------------------------
+	- class level annotation
+	- entry point of spring boot application
+	- combination of :
+		- @SpringBootConfiguration (or SpringConfiguration - both are same)
+		- @EnableAutoConfiguration (Automatically configures jars which are available in class path)
+		- @ComponentScan
+	- The class annotated with @SpringBootApplication, acts also as a configuration class and the class can contain bean configurations methods.
+	- Spring boot application runs as a SpringApplication.
+
+spring-boot-configuration module - contains auto configuration classes
+	for e.g. 
+	-----------
+	spring-boot-starter-web - spring-boot-configuration module configures all the jars associated this starter dependency automatically.
+
+
+@SpringBootApplication
+public class DemoApp {
+	public static void main(String args[]){
+		
+		SpringApplication.run(DemoApp.class, args);
+		
+		// BOOTSTRAPPING
+		//-------------------
+		//run is a static method and does the following internally :
+		//1) creates ApplicationContext (A type of container which manages entire beans) - loads all the beans of the application to the 						ApplicationContext with the help of DemoApp.class.
+		//2) registers CommandLinePropertySource bean (Converts command line arguments to spring application properties)
+		//3) refreshes ApplicationContext with singleton beans
+		//4) triggers CommandLineRunner classes
+
+		// These all for steps are called bootstrapping(initialising the application).
+		
+	}
+}
+

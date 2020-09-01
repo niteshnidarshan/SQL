@@ -169,7 +169,61 @@ public class Test {
 	}
 }
 
-		
+Convert records into java object
+---------------------------------------
+RowMapper -interface
+	- mapRow() : converts each record into java object
+
+For e.g - 
+public class RechargePlanRowMapper implements RowMapper<RechargePlan> {
+	public RechargePlan mapRow(ResultSet rs, int rowIndex) throws SQLException {
+		RechargePlan rp = new RechargePlan();
+		rp.setXXX(rs.getXXX(column_index));
+		return rp;
+	}
+}
+	
+List<RechargePlan> list = jdbcTemplate.query("SELECT * FROM RECHARGE_PLAN", new RechargePlanRowMapper());	
+
+package com.sathya.jdbc;
+public class RechargePlan {
+	private String planid;
+	private Double amount;
+	private int validity;
+	private String description;
+	
+	//Getters-Setters
+}
+package com.sathya.jdbc;
+public class RechargePlanRowMapper implements RowMapper<RechargePlan> {
+	@Override
+	public RechargePlan mapRow(ResultSet rs, int rowNum) throws SQLException {
+		RechargePlan rp = new RechargePlan();
+		rp.setPlan(rs.getString(1));
+		rp.setAmount(rs.getDouble(2));
+		rp.setValidity(rs.getInt(3));
+		rp.setDescription(rs.getString(4));
+		return rp;
+	}
+}
+
+package com.sathya.dao;
+public interface PlanDaoIntf {
+	List<RechargePlan> findAllRechargePlans();
+}
+
+package com.sathya.dao.impl;
+@Repository
+public class PlanDaoImpl implements PlanDaoIntf {
+	@Autowired 
+	JdbcTemplate jdbcTemplate;
+
+	@Override
+	public List<RechargePlan> findAllRechargePlans(){
+		return jdbcTemplate.query("SELECT * FROM RECHARGE_PLAN", new RechargePlanRowMapper());
+	}
+}
+
 
 
 
