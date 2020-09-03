@@ -25,12 +25,57 @@ public class DemoApp {
 		//-------------------
 		//run is a static method and does the following internally :
 		//1) creates ApplicationContext (A type of container which manages entire beans) - loads all the beans of the application to the 						ApplicationContext with the help of DemoApp.class.
-		//2) registers CommandLinePropertySource bean (Converts command line arguments to spring application properties)
+		//2) registers CommandLinePropertySource bean (This class Converts command line arguments to spring application properties)
 		//3) refreshes ApplicationContext with singleton beans
-		//4) triggers CommandLineRunner classes
+		//4) triggers CommandLineRunner bean classes
+
+		//- Just before ready to run spring boot application, CommandLineRunner executes(If you want to execute any logic one time just before spring boot application is going to start. for e.g. - like load all the job schedules from database or to insert users with encrypted password for admin users to database.)
+		- CommandLineRunner is an interface provides a method run().
+		- We can define multiple CommandLineRunner by implementing in our classes, but needs provide order of execution else will run randomly.
 
 		// These all for steps are called bootstrapping(initialising the application).
 		
 	}
 }
+
+CommandLineRunner implementation (by custom)
+---------------------------------------------
+@Component 
+@Order(2) // Defines execution order for the class - low the number higher the priority
+public class LoadSchedulesRunner implements CommandLineRunner {
+	@Override
+	public void run(String... args) {
+		//logic
+	}
+}
+
+@Component 
+@Order(1)
+public class DataRunner implements CommandLineRunner {
+	@Override
+	public void run(String... args) {
+		//logic
+	}
+}
+
+$mvn spring-boot:run //Maven uses Spring boot maven plugin to compile & run
+
+$java -jar filename.jar
+
+Deploy Docker image in cloud
+
+CommandLinePropertySource
+----------------------------
+ - If any value passed by command line argument, it reads those & add to the 'Environment Object' of the application.
+ 
+ - It is similar to write properties in application.properties/ application.yml
+
+  
+ 
+
+9505360660 - mohd. Basith. - Sathya Tech - 5000 - google pay
+send screenshot of payment to 9100920092 whatsapp.
+
+
+
 

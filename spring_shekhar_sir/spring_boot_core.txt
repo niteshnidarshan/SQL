@@ -225,6 +225,148 @@ public class PlanDaoImpl implements PlanDaoIntf {
 }
 
 
+package com.pack.config;
+@Configuration
+@ComponentScan(basePackages="com.sathya")
+public class AppConfig {
+	@Bean
+	public DataSource dataSource(){
+		DriverManagerDataSource dmds = new DriverManagerDataSource();
+		dmds.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+		dmds.setUrl("jdbc:oracle:thin@localhost:152:xe");
+		dmds.setUsername("system");
+		dmds.setPassword("tiger");
+
+		return dmds;
+	}
+
+	@Bean
+	public JdbcTemplate jdbcTemplate() {
+		return new JdbcTemplate(dataSource());
+	}
+}
+
+package com.sathya.test;
+public class Test {
+	public static void main(String[] args){
+		ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+		PlanDaoIntf pt = context.getBean("planDaoImpl", PlanDaoImpl.class);
+		List<RechargePlan> list = pt.findAllRechargePlans();
+		list.forEach( rp -> {
+			sysout("PlanID = "+rp.getPlanId());
+			sysout("amount = "+rp.getAmount());
+			sysout("validity = "+rp.getValidity());
+			sysout("description = "+rp.Description());
+			sysout("====================================");
+		});
+	}	
+}
+
+Working with stored procedure/function
+----------------------------------------
+Single value return - function
+zero or more value return - procedure
+
+JdbcTemplate class - supports DML/DDL operations
+
+SimpleJdbcCall class - supports procedure/ function call
+	- withProcedureName() - to associate a 'procedure' with SimpleJdbcCall.
+	- withFunctionName() - to associate a 'function' with SimpleJdbcCall.
+
+	- execute() - takes input & output(return) as Map - input Map contains IN parameters & output Map contains values to OUT parameters.
+
+Oracle procedure to calculate Bonus
+---------------------------------------
+create or replace procedure_name(<parameter_name> <parameter_mode> <parameter_dataType>) is
+begin
+- - -
+- - -
+end;
+
+--parameter_name should not be same as table's column name
+--parameter_mode = IN/ OUT
+--parameter_dataType = same as SQL DataTypes
+
+SQL> ed file_name.sql
+create or replace calculatebonus(eno in number, empname out varchar2, bonus out number) 
+is
+	salary number(9,2); 
+begin
+	select ename into empname from emp where empno = eno;
+	select sal into salary from emp where empno = eno;
+	if salary <= 5000 then
+		bonus:= salary*0.10;
+	else
+		bonus:= salary*0.20;
+	end if;
+end;
+
+- close editor
+SQL> @file_name.sql // to execute procedure.
+
+- eclipse - maven project - archetype-quickstart 
+- add dependencies - spring-context, spring-jdbc, ojdbc8
+
+package com.sathya.dao;
+public interface EmpDaoIntf {
+	Map<String, Object> findBonusById(int eno);
+}
+
+
+package com.sathya.dao.impl;
+@Repository
+public interface EmpDaoImpl {
+
+	@Autowired
+	SimpleJdbcCall simpleJdbcCall;
+
+	@Override
+	public Map<String, Object> findBonusById(int eno){
+		
+		simpleJdbcCall.withProcedureName("calculatebonus");
+
+		//input
+		Map<String, Integer> input = new HashMap<>();
+		input.put("eno", eno);		
+
+		return simpleJdbcCall.execute(input);
+	}
+}
+	
+package com.sathya.config;
+@Configuration
+@ComponentScan(basePackages="com.sathya")
+public class AppConfig {
+	@Bean
+	public DataSource dataSource(){
+		DriverManagerDataSource dmds = new DriverManagerDataSource();
+		dmds.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+		dmds.setUrl("jdbc:oracle:thin@localhost:152:xe");
+		dmds.setUsername("system");
+		dmds.setPassword("tiger");
+
+		return dmds;
+	}
+
+	@Bean
+	public SimpleJdbcCall jdbcTemplate() {
+		return new SimpleJdbcCall(dataSource());
+	}
+}
+	 
+package com.sathya.test;
+public class Test {
+	public static void main(String[] args){
+		ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+		
+		EmpDaoIntf intf = context.getBean("empDaoImpl", EmpDaoImpl.class);
+		
+		Map<String, Object> output = intf.findBonusById(7654);
+		
+		System.out.println("Emp Name = "+ output.get("EMPNAME"));
+		System.out.println("Bonus = "+ output.get("BONUS"));
+	}	
+}	
 
 
 
