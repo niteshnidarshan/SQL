@@ -368,17 +368,64 @@ public class Test {
 	}	
 }	
 
+NamedParameterJdbcTemplate class
+------------------------------------
+- Makes code Reusable & Easy to read.
+- NamedParameterJdbcTemplate & JdbcTemplate depends on DataSource object.
+
+index parameters - can be used JdbcTemplate
+-----------------------------------------------
+select * from emp where sal>? and deptno=?
 
 
+named parameters - must use NamedParameterJdbcTemplate
+-------------------------------------------------------
+select * from emp where sal>:salary and deptno=:deptno
 
 
+- NamedParameterJdbcTemplate also contains same methods like JdbcTemplate but accepts Map(key must match with parametername) to set the values to named parameters.
+
+	Map input = new HashMap();
+	input.put("salary", 5999.0);
+	input.put("deptno", 20);
+
+	namedParameterJdbcTemplate.update("update emp set sal=:salary where deptno=:deptno", input);
+
+	
+	Map input = new HashMap();
+	input.put("deptno", 10);
+	
+	List list = namedParameterJdbcTemplate.queryForList("select * from emp where deptno=:deptno", input);
 
 
+Spring ORM
+=================
+ORM - Object Relational Mapping
 
+- Relates/Maps database object to java entity class object.
 
+@Entity - class level - indicates that the class is an Entity
+@Table - class level - Specify database table (To map Entity class with custom table name)
+@Id
+@Column
 
+@Entity
+@Table(name = "Customers")
+public class Customer {
+	@Id
+	@Column(name="customer_id")
+	private Integer customerId;
+	
+	@Column(name="customer_name")
+	private String customerName;
 
+	@Column(name="contact_number")
+	private Long contactNumber; 
 
+	---
+
+	//Setters/Getters
+}
 
 
 
