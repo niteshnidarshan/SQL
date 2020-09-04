@@ -76,6 +76,148 @@ CommandLinePropertySource
 9505360660 - mohd. Basith. - Sathya Tech - 5000 - google pay
 send screenshot of payment to 9100920092 whatsapp.
 
+paid
+
+-----------------------------------------------------------------
+
+
+Spring Boot - Summary
+-----------------------
+# Why boot?
+	- Zero/Less configuration
+		* Earlier Spring has provided flexibility to define configurations in multiple ways like xml, annotations, java configuration classes.
+	- Starter dependency
+		* Boot provided combination of compatible dependency in a single starter dependency
+	- Embeded server
+		* Earlier had to deploy jar/war to server manually.
+	- When application moves on from one environment to another then you had to change application properties manually.   
+	
+- Spring Boot is a new model to create spring applications, but it is not a new framework
+
+- Features
+	* Zero or Minimal configurations
+	* Starter Dependencies
+	* Embedded servers
+	* Opinionated view - Default configuration with customisations 
+	* profiles
+	* actuators - Production ready features
+
+- Requirements for Spring Boot		
+	1) Java 8+
+	2) Maven/ Gradle
+
+- Changes to pom.xml
+	1) Add parent tag
+	2) Add starter dependencies
+	3) add plugin
+	
+- If you want to migrate a spring application to spring boot application, you need to add the changes to pom.xml manually.
+
+- A new spring boot applications are generated through spring initialiser tool, which automatically adds the required changes in pom.xml.
+
+
+@SpringBootApplication
+-------------------------
+* Every spring boot application executes from java main(). 
+* To make a class as an entry point for spring boot project, add @SpringBootApplication on class 
+* @SpringBootApplication = @SpringBootConfiguration + @EnableAutoConfiguration + @ComponentScan
+* Every spring boot application class is a configuration class, in which you can define bean methods to customize the configurations.
+* In spring boot, we have auto configure module with a group of auto configuration classes which automatically adds the required bean configurations based on the jars available on classpath.
+
+com.pack // base package - contains main method - does auto configure from its package.  
+com.pack.service
+com.pack.controller
+com.pack.entity
+com.pack.model
+com.pack.dao
+com.pack.utilities
+
+* Bydefault, components auto scan starts from spring boot application's base package to its sub packages.
+It can be customized with scanBasePackages element.
+(If configuration available in package other than base package path) 
+
+@SpringBootApplication(scanBasePackages={"package1", "package2", ...})
+
+SpringApplication.run()
+----------------------------
+* Spring boot has provided SpringApplication class, to run a spring boot application as a spring based application from java main method.
+* The run() has two parameters : 
+	1) Spring Boot Application class Class object
+	2) command-line arguments
+
+for e.g.
+----------
+@SpringBootApplication
+public class DemoApplication {
+	psvm(String args[]) {
+		SpringApplication.run(DemoApplication.class, args);
+	}
+}
+
+Stereo type annotations - defines role of the class
+----------------------------------------------------------
+@Component - spring bean class
+@Service
+@Controller
+@RestController
+@Repository 
+@Configuration - java configuration class
+
+CommandLineRunner - Triggers just before running spring boot application.
+Multiple CommandLineRunner can be defined with run order.
+
+STS(Spring Tools Suite) IDE - File - new Spring Starter Project 
+Name - Demo1 | Type - Maven | Packaging - jar | Java Version - 8
+Group(Organisation) - com.sathyatech
+Artifact(Project Name) - Demo1
+Version 1.1
+package(Base package) - com.demo
+
+Next - Spring Boot Version - 2.3.3 | Dependencies - ...if any like web, lombok etc. (If not add any dependency, it will be added Spring-Boot-Starter dependency only).
+
+pom.xml - plugin(spring-boot-maven-plugib) - spring provided this plugin to build & run spring boot application.
+
+Demo1Application.java - this class is created automatically according to the Project name.
+
+@SpringBootApplication
+public class Demo1Application {
+	psvm(String args[]) {
+		SpringApplication.run(Demo1Application.class, args);
+	}
+}
+
+package com.demo.bean;
+@Component
+public class HelloWorldBean {
+	public String sayHello() {
+		return "Hello World";
+	}
+}
+
+package com.demo.runner;
+@Component
+public class MyRunner implements CommandLineRunner{
+	@Autowired //Object/collection dependencies - if bean is conflicting then use @Qualifier
+	HelloWorldBean helloWorld;
+
+	@Override
+	public void run(String... args) throws Exception{
+		System.out.println(helloWorld.sayHello());
+	}
+}
+
+Go to main() class & run as java application.
+
+manven - maven run - build
+project - target - Demo1-1.1.jar
+$ go to project path
+$ java -jar target/Demo1-1.1.jar
+or 
+$ mvn spring-boot:run
+
+
+
+
 
 
 

@@ -428,9 +428,158 @@ public class Customer {
 }
 
 
+Transactions - A set of statements - executes all or none of them
+--------------------------------------------------------------------
+1) Local Transaction (By Hibernate) - Can execute on Single DB
+2) Global Transaction (By third party API) - Can execute on Multiple DB
+
+- Spring ORM provides Hibernate Template.
+- Hibernate Template depends on SessionFactory object.
+
+- LocalSessionFactoryBean class - produces a SessionFactory object and injects to Hibernate Template through Constructor/ Setter.
+
+- LocalSessionFactoryBean has three properties
+	1) dataSource property
+	2) annotatedClasses(Entity classes) property
+	3) Hibernate property(like show_sql, dialect)
+
+- insert/ update/ delete must be executed within a Transaction
+- get/load must be executed with/without a Transaction
+
+@Transactional - at method/class level
+-------------------------------------------
+- insert/ update/ delete must be executed within a Transaction
+
+HibernateTransactionManager - also depends on SessionFactory, produced by LocalSessionFactoryBean.
+
+HibernameTemplate provides get()/ load()/ loadAll()/ save()/ update(), delete() etc.
 
 
+dependencies in pom.xml
+-----------------
+spring-context(5.1.7)
+spring-orm(5.1.7) - depends on hibernate-core
+spring-jdbc(5.1.7) - for datasource
+hibernate-core(5.2.17)
+ojdbc8(19.3.0) - oracle driver dependency 
+
+@Entity
+@Table(name = "emp")
+public class Employee {
+
+	@Id 
+	private Integer empno;
+	private String ename;
+	private Double sal;
+	private Integer deptno;
+
+	//constructors/Setter/Getters 
+
+}
+
+public interface IEmployeeDao {
+	void saveEmp(Employee emp);
+	Employee findEmp(Integer empno);
+	List<Employee> findAll();
+	void updateEmp(Employee emp);
+	void deleteEmp(Integer empno);
+}
+
+@Repository
+@Transactional
+public class EmployeeDaoImpl implements IEmployeeDao {
+
+	@Autowired
+	HibernateTemplate hibernateTemplate;
+
+	void saveEmp(Employee emp) {
+		hibernateTemplate.save(emp);
+	}
+	Employee findEmp(Integer empno) {
+		return hibernateTemplate.get(Employee.class, empno);
+	}
+	List<Employee> findAll() {
+		return hibernateTemplate.loadAll(Employee.class);
+	}
+	void updateEmp(Employee emp) {
+		hibernateTemplate.update(emp);
+	}
+	void deleteEmp(Integer empno) {
+		Employee e = hibernateTemplate.get(Employee.class, empno);
+		if(e != null) {
+			hibernateTemplate.delete(e);
+		}
+	}
+}
 
 
+@Configuration
+@ComponentScan(basePackage="com.sathya")
+@EnableTransactionManagement
+public class AppConfig {
+	
+	@Bean
+	public DataSource dataSource() {
+		DriverManagerDataSource dmds = new DriverManagerDataSource();
+		dmds.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+		dmds.setUrl("jdbc:oracle:this:@localhost:5321");
+		dmds.setUsername("system");
+		dmds.setPassword("tiger");
+		return dmds;
+	}
 
+	@Bean
+	public LocalSessionFactoryBean localSessionFactory() {
+		LocalSessionFactoryBean factoryBean = new LocalSessionFactoryBean();
+		factoryBean.setDataSource(dataSource());
+		factoryBean.setAnnotatedClasses(Employee.class);
+
+		Properties properties = new Properties();
+		properties.setProperty("dialect", "org.hibernate.dialect.OrcaleDialect");
+		properties.setProperty("show_sql", "true");
+		properties.setProperty("hbm2ddl.auto", "update");
+
+		factoryBean.setHibernateProperties(properties);
+		return factoryBean;
+
+	}
+
+	@Bean
+	public HibernateTemplate hibernateTemplate() {
+		HibernateTemplate template = new HibernateTemplate();
+		template.setSessionFactory(localSessionFactory().getObject());
+		return template;
+	}
+
+	@Bean(name="transactionManager") // It must be transactionManager in container
+	public HibernateTransactionManager txn() {
+		return new HibernateTransactionManager(localSessionFactory().getObject());
+	}
+
+}
+
+public class Test {
+	public static void main(String args[]) {
+		ApplicationContext ctx = new ApplicationConfigApplicationContext(AppConfig.class);
+		IEmployeeDao dao = (IEmployeeDao) ctx.getBean("employeeDaoImpl");
+
+		Employee emp = new Employee(7900, "KEN", 4000.0, 30);
+		dao.saveEmp(emp);
+
+		Employee e = dao.findEmp(7654);
+		sysout(e);
+
+		List<Employee> empList = dao.findAll();
+		empList.forEach(e->sysout(e));
+
+		Employee emp = new Employee(7782, "CLARK", 26000.0, 20);
+		dao.updateEmp(e);
+
+		dao.deleteEmp(7900);
+
+		
+	}
+}
+
+javashekher@gmail.com - Request for Spring Matarial.
  
