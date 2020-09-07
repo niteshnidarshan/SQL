@@ -217,6 +217,77 @@ $ java -jar target/Demo1-1.1.jar
 or 
 $ mvn spring-boot:run
 
+If mvn is showing error like - not a command
+- download maven, extract & set maven on environmental path
+- apache-maven-3.5.2\bin : add this to path variable.
+ 
+$ mvn --version
+$ mvn clean package [clean - to clean previous build, package - packaging jar]
+$ mvn spring-boot:run - to run boot project inside the project directory
+
+Application properties is set by either of :
+1) application.properties
+2) application.yaml
+3) command line argument
+4) CommandLineRunner class
+
+command line argument has two types
+1) Optional arguments [contains key=value, starts with '--']
+	for e.g.
+	---------
+	$ java -jar target/filename.jar --key=value
+
+2) Non-optional arguments [contains only value]
+
+	for e.g. 
+	------------
+	$ java -jar target/filename.jar --key=value --key=value nonoptional1 nonoption2
+
+
+ApplicationRunner interface
+--------------------------------
+- like CommandLineRunner interface & it has also a run() but it takes ApplicationArguments
+
+- run(ApplicationArguments args)
+
+- ApplicationArguments separates Optional & non-optional command line arguments.
+
+- If you want to set properties at the time of runtime then go for ApplicationRunner.
+
+with @Values can be injected values to the bean - It is called value injection.
+
+
+@Component
+public class HelloWorldBean {
+	//@Value("Hello World")
+	@Value(${msg.key})
+	String message;
+
+	public String sayHello() {
+		return message;
+	}
+}
+
+application.properties
+--------------------------
+msg.key=Hello World!
+
+
+- If we provide value at runtime with argument, it will override application properties value.
+$ java -jar target/Demo-1.1.jar --msg.key="It's a boot application" [This message will be shown].
+
+So, command line argument has high priority.
+
+If properties file name is not "application.properties" then use @PropertySource(classpath:myfile.properties) in @SpringBootApplication class
+
+
+
+
+
+
+
+
+
 
 
 
