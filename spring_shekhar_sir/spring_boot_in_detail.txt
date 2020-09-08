@@ -1,3 +1,92 @@
+Spring Boot is a new model to develop spring applications.
+
+Features
+-----------
+1) Flexibility over configuration - Annotation, java config classes or zero configurations.
+
+2) Starters dependency - (Combination of required jars)
+	- A group of related dependencies with appropriate versions.
+
+3) Embedded server - (Tomcat, Jetty etc.)
+
+4) Profiles (To make application compatible for different environments - just need to activate the related profile at the time of development)
+
+5) Actuators - Inside details of application during runtime like heap size, memory information, server status etc.
+
+
+SpringBoot Core/ AOP
+SpringBoot MVC
+SpringBoot Data JPA
+SpringBoot Data MongoDB
+SpringBoot Security
+SpringBoot Restful Web services
+SpringBoot Data Redis
+SpringBoot Security Oath2
+SpringBoot Profiles
+SpringBoot Atuator
+SpringBoot Batch
+SpringBoot Kafka
+
+Monolithic application - Single jar/ war for whole application
+------------------------------------------------------------------
+- It has the following drawbacks
+
+	1) Large App 
+		- Increase development time, may cause downtime during deployment even though changes are very small.
+		- Large deployment & startup time
+	2) Scaling
+		- Difficult to handle when large traffic for a single module, entire application goes down.
+
+	3) One Technology Stack -Entire development is done only with one technology, Other language/ technology support not available.
+
+Solution of Monolithic approach is - Micro-services.
+
+Micro-services
+------------------
+- Split of large system into smalls.
+- Independent responsibility for each micro services.
+- Scaling [If one micro-service is having downtime/ load - only that particular micro-service can be scaled up without interrupting others.]
+- Multi language development possible (Interoerability). 
+
+
+pom.xml
+===============
+1) Add <parent> tag - above dependency tag
+	
+	<parent> 
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.3.1.RELEASE</version>
+	</parent>
+
+2) Add dependencies
+	
+	<dependency>	
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter</artifactId>
+
+		/* Here version is automatically inherited from parent, so no need to provide */ 
+
+	</dependency>
+
+3) Add plugin
+
+	- Spring boot provided plugins to maven to build, run, test & package for war/jar with goal etc...
+
+	<plugin>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-maven-plugin</artifactId> /* To build & execute spring boot app */
+	</plugin>
+
+
+- In order to migrate existing application, add these three tags in pom.xml
+- To create new spring boot project, needs spring initializer tool which adds all the stuffs in pom.xml like start.spring.io
+- Every spring boot application have entry point class with main method and application executes from this main method only.
+- The entry point class must have annotated with @SpringBootApplication. 
+- @SpringBootApplication consist of three annotations :
+	[@Configuration / @SpringBootConfiguration + @ComponentScan + @EnableSpringBootConfiguration].
+
+
 @SpringBootApplication
 ---------------------------------
 	- class level annotation
@@ -279,6 +368,66 @@ $ java -jar target/Demo-1.1.jar --msg.key="It's a boot application" [This messag
 So, command line argument has high priority.
 
 If properties file name is not "application.properties" then use @PropertySource(classpath:myfile.properties) in @SpringBootApplication class
+
+create a spring core app : 
+-----------------------------
+package com.demo
+@SpringBootApplication
+public class Demo2Application {
+	psvm(String args[]) {
+		SpringApplication.run(Demo2Application.class, args);
+	}
+}
+
+package com.demo.runner;
+@Component
+public class MyApplicationRunner implements ApplicationRunner {
+	@Override
+	public void run(ApplicationArguments args) throw Exception {
+		//ApplicationArguments has separate methods for option & nonoption arguments 
+
+		//To print all Non-option args
+		List<String> nonOptionArgsList = args.getNonOptionArgs();
+		sysout("Non-option args from command line : ");
+		nonOptionArgsList.forEach(System.out::println);
+
+		sysout("=====================");
+
+		//To print all option args
+		//One key can have multiple values.
+		Set<String> optionArgsNames = args.getOptionNames();
+		optionArgsNames.forEach((name)-> {
+			List<String> optionArgValues = args.getOptionValues(name);
+			System.out.print(name + " : "); //name
+			optionArgValues.forEach(System.out::print+" "); //associated values
+		}); 
+	}
+}
+
+$ mvn spring-boot:run -Dspring-boot.run.arguments="--id=101 --name=Stahya,Shekher Amirpet Hyderabad"
+or
+$ java -jar target/Demo2-1.1.jar --id=101 --name=Stahya,Shekher Amirpet Hyderabad
+
+$ java -jar target/Demo2-1.1.jar --id=101 --name=Stahya,Shekher Amirpet Hyderabad --id=10001
+
+Note : id=10001 does not override id=101. It will keep both with coma sepearted
+
+
+To Autowire Option & Non-Option args in a class
+----------------------------------------------------
+
+@Component
+public class Warehouse {
+	List<String> warehouseTypes;
+
+	@Autowired
+	ApplicationArguments args;
+
+	public void addWarehouseTypes(){
+		List<String> list = args.getNonOptionArgs();
+		list.forEach(value->warehouse.add(value));
+	}
+}
 
 
 
