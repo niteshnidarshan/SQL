@@ -1,7 +1,7 @@
 Hibernate
 =======================
 load() & get()
-@OneToMany - Eager/lazy loading - fetch=FetchType.EAGER
+Relationships - @OneToMany - Eager/lazy loading - fetch=FetchType.EAGER
 
 @GeneratedValue
 
