@@ -1,0 +1,75 @@
+Hibernate
+=======================
+load() & get()
+@OneToMany - Eager/lazy loading - FetchType
+
+Spring & Spring Boot
+=======================
+1) What is dependency injection & how many types of dependencies have you used so far?
+
+2) When to go for Setter dependency & when to go for constructor dependency?
+
+3) Could you please explain MVC architecture?
+
+4) @Autowired, @Qualifier [To resolve - When object name ambiguity issue occurs] 
+
+5) @Component, @Service, @Repository, @Controller & @Restcontroller
+
+6) Bean scope [singleton, prototype, request, session, global session] - @Scope 
+
+7) Advice - [@Before, @AfterReturning, @Throws, @Around, @AfterThrowing (after/finally)]
+
+8) Why Spring Boot?
+
+9) Features of Spring Boot.
+
+10) How to set server port [server.port=9090]
+
+11) Lombok  [@Data, @Getters, @Setters]
+
+Microservices
+=====================
+1) Service Oriented Architecture(SOA)
+
+2) Communication between micro-services [restTemplate.getForObject("USER_URL", UserDto)]
+
+	DiscoveryServer [Eureka-netflix] @EnableEurekaServer  - at client @EnableEureksClient, @EnableFeignClients(feign.proxy.interface.path) in main boot class.
+
+	Registry of MS (Ribbon) - Ribbon is for load balancing, holds all the registered MS & manages their URLs dynamically.
+
+3) @CrossOrigin	
+
+
+Different layers of application - controller, dao, service, dto, exception
+
+
+Servlet
+================
+Lifecycle(init(), service()/doGet()/doPost()..., destroy)
+
+ServletConfig & ServletContext
+
+
+Java
+=============
+1) How many design patterns have you used so far ? Singleton design pattern
+2) Immutable class
+3) final, finally & finalize
+3) private variable, method & class scope
+4) Object class methods
+5) Object sorting (java.lang.Comparable & java.util.Comparator) in Java8 movieList.sort(Comparator.comparing(Movie::getName).reversed());
+6) Thread creation ways [Thread class, Runnable interface, Callable interface]
+7) OOPS (abstraction & encapsulation)
+
+
+
+
+
+
+
+
+
+
+
+
+ 

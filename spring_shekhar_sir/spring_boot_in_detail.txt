@@ -429,6 +429,179 @@ public class Warehouse {
 	}
 }
 
+Command Line Arguments
+------------------------------
+CommandLineRunner - run(String... args)
+ApplicationRunner - run(ApplicationArguments args)
+
+Command line arguments
+1) option args [--key=value]
+2) non-option args [value]
+
+- application.properties - define arguments here at development time.
+
+- Command Line Arguments override application.properties values.
+
+For e.g with DI
+------------------------
+package com.demo.bean;
+@Component
+public class PolicyBean{
+
+	@Value("${policy.company}")
+	String policyCompany;
+	
+	List<String> policyTypes = new ArrayList<String>();
+
+	@Autowired
+	ApplicationArguments args;
+
+	public void showDetails() {
+		List<String> nonOptionArgs = args.getNonOptionArgs();
+		nonOptionArgs.forEach((name)->{
+			policyTypes.add(name);
+		});
+		
+		sysout("Policy company: "+policyCompany);
+		sysout("Policy Type: ");
+		policyTypes.forEach(System.out::println);
+	}
+	
+}
+
+package com.demo.runner;
+
+@Component
+public class MyRunner implements CommandLineRunner {
+	@Autowired
+	PolicyBean policyBean;
+
+	@Override
+	public void run(String... args) throws Exception {
+		policyBean.showDetails();
+	}
+}
+
+application.pproperties
+------------------------
+policy.company=LIC
+
+- package it 
+
+$ java -jar target/Demo3-1.1.jar --policy.company="LIC Of India" "Endowment Plan" "Term Insurance Plan" "Money Back Plan"
+
+- We can make the main class of spring boot app also a CommandLineRunner like this - because @SpringBootApplication is also a @Component : 
+@SpringBootApplication 
+public class Demo3Application implements CommandLineRunner {
+	@Autowired
+	PolicyBean policyBean;
+
+	public static void main(String args[]){
+		SpringApplication.run(Demo3Application.class, args);
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		policyBean.showDetails();
+	}
+}
+
+
+CommandLineRunner
+---------------------
+	- Implement this interface into a class to define a code to run before a spring boot application's bootstrapping is going to finish.
+	- Just before a spring boot application becomes ready to use by the users, the command line runner beans of application will be executed.
+	- You can define multiple CommandLineRunner and define the order of their executions with @Order.
+
+ApplicationRunner
+-------------------
+	- It is also like CommandLineRunner only, but it provides a run() with ApplicationArguments parameters to access option and non-option arguments separately.
+	- An option argument has a key-value. [--key=value]
+	- An option argument has a value only. [without --]
+
+	$ java -jar target/appname.jar --key=value --server.port=2020 --db.user=system IamNonOption1 "I am Non Option2"
+	
+	$ mvn spring-boot:run -Dspring-boot.run.arguments="--key=value --server.port=2020 --db.user=system IamNonOption1 'I am Non Option2'"
+
+
+Spring-JDBC [spring-boot-starter-jdbc & DB Driver dependencies]
+=================================================================== 
+	- Checked exception
+	- No boiler plate code
+	- Provides an abstraction layer over JDBC - JdbcTemplate class
+		- JdbcTemplate class depends on DataSource[interface].
+			DataSource[interface] implementation :
+				- DriverManagerDataSource class
+				- HikariDataSource class
+
+ 
+	
+spring-jdbc project
+------------------------
+	pom.xml
+	--------------------------
+	- spring-boot-starter-jdbc(JDBC API) & Oracle Driver(ojdbc8) dependencies
+	
+	application.properties
+	--------------------------
+	spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+	spring.datasource.url=jdbc:oracle:thin:@localhost:1521:xs
+	spring.datasource.username=system
+	spring.datasource.password=tiger
+
+	package com.demo.dao;
+	public interface EmpDaoIntf {
+		void updateEmp(double salary, int deptno);
+		Map findEmpById(int empno);
+		List<Map<String, Object>> findAll();
+	}
+
+	package com.demo.dao.impl;
+	@Repository
+	public class EmpDaoImpl implements EmpDaoIntf {
+
+		@Autowired 
+		JdbcTemplate jdbcTemplate;
+
+		@Override
+		void updateEmp(double salary, int deptno){
+			jdbcTemplate.update("UPDATE EMP SET SAL=? WHERE DEPTNO=?", salary, deptno);
+		}
+
+		@Override
+		Map findEmpById(int empno) {
+			return jdbcTemplate.queryForMap("SELECT * FROM EMP WHERE EMPNO=?",empno); //Single record selection
+		}
+
+		@Override
+		List<Map<String, Object>> findAll() {
+			return jdbcTemplate.queryForList("SELECT * FROM EMP"); //Multi row records
+		}
+	}
+
+	package com.demo.runner;
+	@Component		
+	public class MyRunner implements CommandLineRunner {
+		@Autowired
+		EmpDaoIntf intf;
+
+		@Override
+		public void run(String... args) throws Exception {
+			intf.updateEmp(5999.0, 20);
+			
+			sysout(intf.findEmpById(7788));
+
+			List<Map<String, Object>> list = intf.findAll();
+			list.forEach(System.out::println); 
+		}
+	}
+	
+	run app 
+
+
+
+
+
 
 
 
