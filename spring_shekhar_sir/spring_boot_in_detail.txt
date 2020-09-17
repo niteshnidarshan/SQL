@@ -598,13 +598,125 @@ spring-jdbc project
 	
 	run app 
 
+Spring Boot MVC
+==================
+- Web applications can be created using Servlet & JSP technologies which provides tightly coupled solution.
+- Model(data/business), view(presentation), controller(navigates between model & view).
+- Front Controller (DispatcherServlet) - Controls each & every request
+
+- In java MVC & MVC2 architectures are there.
+	- In MVC(No Helper class), front controller contacts with appropriate Model directly then controller decides appropriate view.
+	- In MVC2(Use Helper class), front controller servlet use Helper classes to identify Model & View classes. 
+	- Spring MVC follows MVC2 architecture where need to configure servlet_name-servlet.xml and also need to add DispatcherServlet to web.xml 
+		WEB-INF/ web.xml & <servlet_name-servlet.xml> files
+		web.xml
+		--------------
+		<web-app>
+			<servlet>
+				<servlet-name>spring</servlet-name>
+				<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+				<load-on-startup>1</load-on-startup> //for early load of servlet.
+			</servlet>
+			<servlet-mapping>
+				<servlet-name>spring</servlet-name>
+				<url-pattern>/</url-pattern>
+			</servlet-mapping>
+		</web-app>
+	- Spring boot MVC - No need to configure web.xml or view response 
+
+	spring MVC
+	-----------
+		Controller
+		---------------
+		@Controller - class level annotaion
+		@RequestMapping/ @GetMapping/ @PutMapping/ @PostMapping/ @DeleteMapping - Method level annotations 
+	
+
+		@Controller
+		public class UserController { //Controller Bean class
+
+			//Old style
+			@RequestMapping(value="/getUsers", method = RequestMethod.GET)
+			public ModelAndView findUsers() {
+				---
+				---
+			}
+
+			//New Style
+			@GetMapping("/getUsers")
+			public ModelAndView findUsers() {// findUsers() is called Handler Method
+				---
+				---
+
+				return new ModelAndView("view_name", "model_name", model_value); //String, String, Object -- will return view_name.jsp
+				//InternalResourceViewResolver - to resolve a view name to actual view by adding a prefix & suffix - which needs to configure.
+ 
+			}
+
+		}
+ 
+
+		1) DispatcherServlet calls HandllerMapping[RequestMappingHandlerMapping] bean to identify appropriate Controler
+		2) HandllerMapping[RequestMappingHandlerMapping] bean returns appropriate Controller which associates the request to DispatcherServlet.
+		3) Then DispatcherServlet calls that Controller bean.
 
 
 
+	@Controller
+	public class EmployeeController {
+		@GetMapping("/index")
+		public ModelAndView getIndexPage() {
+			return new ModelAndView("index");
+		}
+	}
+	
+	@GetMapping("/employee/deptno") 
+	public ModelAndView getEmployeesByDeptno(int deptno) {
+		List<Employee> wmpList = service.findEmpsByDno(deptno);
+		return new ModelAndView("show", "employee", empList);
+	}
 
 
+	- In SpringBoot by default InternalResourceViewResolver class is associated for View Resolver bean. It maps the view name to actual view.
+	- InternalResourceViewResolver maps actual view by appending prefix & suffix.
+		prefix = "/WEB-INF/views/"
+		suffix = ".jsp"
+
+		So, "/WEB-INF/views/show.jsp" will be the response for the DispatcherServelt, then DispatcherServelt renders show.jsp & responds.
+	
+		/WEB-INF/views/*.jsp
+
+	- In SpringBoot prefix & suffix to be set in application.properties
+
+	- Web applications are created to share resources. these resources may be a page/data/functionality.
 
 
+	Current development scenario - No need to return ModelAndView object, just need to set model data to ModelMap & return view name 
+	----------------------------------------------------------------------------------------------------------------------------------
+	@GetMapping("/employees")
+	public String getEmployees(ModelMap model) { //ModelMap is a type of Map only, instead of ModelMap it can be used Model/ Map**
+		List<Employee> employeesList = service.findEmployees();
+		model.addAttribute("employees", employeesList); //Model is set to ModelMap
+		return "show"; //Returns only view name
+	}
+	
+	**ModelMap extends LinkedHashMap implements Model [Model is from spring]
+
+	Simple Spring MVC(No Spring boot) application development requires :
+	------------------------------------------------------------------------
+	1) MVC related dependencies to pom.xml
+	2) add DispatcherServlet configuration to web.xml
+	3) define spring configuration in dispatcher-servlet.xml
+	4) deploy war on a server
+
+
+	Spring boot MVC application development requires :
+	-------------------------------------------------------
+	1) add spring-boot-starter-web in pom.xml
+	2) add server/ prefix/ suffix properties in application.properties
+	3) run application
+
+	
 
 
 

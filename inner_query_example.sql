@@ -23,6 +23,20 @@ rownum <= 3
 order by sal desc;
 
 
+/**
+* Query to find second largest salaried employee details
+*/
+WITH T AS
+(
+SELECT * FROM
+   DENSE_RANK() OVER (ORDER BY Sal Desc) AS Rnk
+FROM Employee
+)
+SELECT Name
+FROM T
+WHERE Rnk=2;
+
+
 /****Question*******
  *   To select all the employees whose salaray is greater than his manager salary
  */
