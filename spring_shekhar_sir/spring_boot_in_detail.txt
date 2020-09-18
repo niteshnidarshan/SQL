@@ -675,7 +675,6 @@ Spring Boot MVC
 		List<Employee> wmpList = service.findEmpsByDno(deptno);
 		return new ModelAndView("show", "employee", empList);
 	}
-<<<<<<< HEAD
 
 
 	- In SpringBoot by default InternalResourceViewResolver class is associated for View Resolver bean. It maps the view name to actual view.
@@ -688,28 +687,10 @@ Spring Boot MVC
 		/WEB-INF/views/*.jsp
 
 	- In SpringBoot prefix & suffix to be set in application.properties
-=======
->>>>>>> 09c868d58f4f5ab4915f12eb78be9cc98bf81bed
-
-	- Web applications are created to share resources. these resources may be a page/data/functionality.
-
-	- In SpringBoot by default InternalResourceViewResolver class is associated for View Resolver bean. It maps the view name to actual view.
-	- InternalResourceViewResolver maps actual view by appending prefix & suffix.
-		prefix = "/WEB-INF/views/"
-		suffix = ".jsp"
-
-<<<<<<< HEAD
-=======
-		So, "/WEB-INF/views/show.jsp" will be the response for the DispatcherServelt, then DispatcherServelt renders show.jsp & responds.
-	
-		/WEB-INF/views/*.jsp
-
-	- In SpringBoot prefix & suffix to be set in application.properties
 
 	- Web applications are created to share resources. these resources may be a page/data/functionality.
 
 
->>>>>>> 09c868d58f4f5ab4915f12eb78be9cc98bf81bed
 	Current development scenario - No need to return ModelAndView object, just need to set model data to ModelMap & return view name 
 	----------------------------------------------------------------------------------------------------------------------------------
 	@GetMapping("/employees")
@@ -720,15 +701,6 @@ Spring Boot MVC
 	}
 	
 	**ModelMap extends LinkedHashMap implements Model [Model is from spring]
-<<<<<<< HEAD
-
-	Simple Spring MVC(No Spring boot) application development requires :
-	------------------------------------------------------------------------
-	1) MVC related dependencies to pom.xml
-	2) add DispatcherServlet configuration to web.xml
-	3) define spring configuration in dispatcher-servlet.xml
-	4) deploy war on a server
-=======
 
 	Simple Spring MVC(No Spring boot) application development requires :
 	------------------------------------------------------------------------
@@ -769,7 +741,6 @@ Spring Boot MVC
 			return "welcome";
 		}
 	}
->>>>>>> 09c868d58f4f5ab4915f12eb78be9cc98bf81bed
 
 	create a jsp file in this directory :
 	/src/main/webapp/WEB-INF/views/welcome.jsp
@@ -778,24 +749,13 @@ Spring Boot MVC
 	---------------
 	<h1>Jai Ram G ki</h1>
 
-<<<<<<< HEAD
-	Spring boot MVC application development requires :
-	-------------------------------------------------------
-	1) add spring-boot-starter-web in pom.xml
-	2) add server/ prefix/ suffix properties in application.properties
-	3) run application
-=======
 	
 	run & request as http://localhost:2223/mvc/hello
->>>>>>> 09c868d58f4f5ab4915f12eb78be9cc98bf81bed
 
 
 
 	
-<<<<<<< HEAD
-=======
 	
->>>>>>> 09c868d58f4f5ab4915f12eb78be9cc98bf81bed
 
 
 

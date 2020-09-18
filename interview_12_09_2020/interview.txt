@@ -1,11 +1,7 @@
 Hibernate
 =======================
 load() & get()
-Relationships - @OneToMany - Eager/lazy loading - fetch=FetchType.EAGER
-
-dialect
-
-@GeneratedValue
+@OneToMany - Eager/lazy loading - FetchType
 
 Spring & Spring Boot
 =======================
