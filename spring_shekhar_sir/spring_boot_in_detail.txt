@@ -716,6 +716,8 @@ Spring Boot MVC
 	2) add server/ prefix/ suffix properties in application.properties
 	3) run application
 
+
+
 	
 
 
