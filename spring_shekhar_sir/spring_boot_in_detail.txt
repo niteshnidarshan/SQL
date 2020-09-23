@@ -753,6 +753,102 @@ Spring Boot MVC
 	run & request as http://localhost:2223/mvc/hello
 
 
+pom.xml
+--------------
+<dependency>
+	<groupId>jstl</groupId>
+	<artifactId>jstl</artifactId>
+</dependency>
+
+application.properties
+---------------------------
+server.servlet.context-path=/Train
+spring.mvc.view.prefix=/WEB-INF/views
+spring.mvc.view.suffix=.jsp
+
+
+@Repository
+public class TrainDaoImpl implements TrainDaoIntf {
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+	
+	public Train findTrain(Integer trainno) {
+		Map map = jdbcTemplate.queryForMap("select * from train_details where train_no = ?", trainno);
+		
+		Train train = new Train();
+		BigDecimal bd = (BigDecimal)map.get("train_no");
+		Integer trno = bd.intValue();
+		train.setTrainno(trno);
+		train.setSource(map.get("source").toString());
+		train.setDestination(map.get("destination").toString());
+
+		//Here RowMapper can be used to map object with POJO automatically.
+	}
+}
+
+@Controller
+public class TrainController {
+	@Autowired
+	TrainDaoIntf intf;
+
+	@GetMapping("")
+	public String {
+		return "search";
+	}
+
+	@GetMapping("")
+	public String searchTrainByNo(@RequestParam Integer trainno, Model model){
+		Train train = intf.findTrain(trainno);
+		model.addAttribute("train", train);
+		retrun "result";
+	}
+	
+	
+}
+
+result.jsp
+--------------
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%> //EL - expression language/ jstl tag
+<table>
+	<tr>
+		<th>Train#</th>
+		<th>Source</th>
+		<th>Destinaion</th>
+		<th>Dept time</th>
+		<th>Arr time</th>
+	</tr>
+	<tr>
+		<td><c:out value="${train.trainno}"/></td>
+		<td><c:out value="${train.source}"/></td>
+		<td><c:out value="${train.destination}"/></td>
+		<td><c:out value="${train.depttime}"/></td>
+		<td><c:out value="${train.arrtime}"/></td>
+	</tr>
+
+</table>
+
+
+Data Binding
+=================
+- By binding a UI form with application object, we achieve data binding.
+- With JSP it can be achieved by adding the tag library as 
+	<%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+
+	<form:form action="xxx" modelAttribute="userData">//form tag - first form is prefix & second one is tag name
+											    //add javaBeanObject(userData) with a name in ModelMap of spring
+
+	@Controller
+	public class UserController {
+
+		@GetMapping("/userForm")
+		public String getUserFormPage(Model model) {
+			UserBean userBean = UserBean();
+			model.addAttribute("userData", userBean);
+			return "user";
+		}
+	}
+	
+
 
 	
 	
