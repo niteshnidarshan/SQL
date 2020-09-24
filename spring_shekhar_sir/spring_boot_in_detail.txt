@@ -847,7 +847,107 @@ Data Binding
 			return "user";
 		}
 	}
+
+On click of Submit button in UI, associated url is handled by the handler method to read the data,
+which uses @ModelAttribute to bind method parameter to the model attribute.
+
+Submit form -> @Controller -> 
+
+@Controller
+public class UserController {
+	@GetMapping("/xxx")
+	public String getUserPage() {
+		//code
+	}
+
+	@PostMapping("/addUser")
+	public String addUserDetails (@ModelAttribute UserBean userBean) {
+		//code
+	}
+} 
+
 	
+Data Validation
+===================
+- Javascript validation is done on client side which is not much secure, for this need to validate data on server side.
+- To validate data at server side, spring framework has not given any annotations.
+- Sun has provided Bean Validation API(in interfaces) to validate data on java bean class with annotation.
+- Hibernate has provided its implementation as Hibernate validator API.
+- For this need to use dependency - spring-boot-starter-validation.
+
+@AssertTrue
+private boolean isActive; //Field value must be true
+
+@AssertFalse
+private boolean isDeleted; //Field value must be false
+
+@NotEmpty //Can be applied only in String field
+String userName; //userName should not be empty. else validation error.
+
+@Size(min=5, max=10) //Can be applied only in String field
+String password; 
+
+@NotNull 
+Date dob;
+
+@NotNull //can be applied on objects, enum etc.
+Gender gender;
+
+@NotEmpty
+@Email
+String email;
+
+@Min(18)
+@Max(21)
+Integer age; //@Min, @Max can be used with Integer, int, short, long.
+
+@DecimalMin(15.15)
+@DecimalMax(25.25)
+Double price; // For decimal(float/ double)
+
+@Past
+@Future
+Date field; // With date fields
+
+@Pattern(regex="")
+String code; // Can be applied on String field only
+
+^ = used to match beginning of the value.
+^[A-Z]
+
+$ = used to match end of the value.
+[0-9]$
+
+* = 0 or multiple characters.
+[a-z]*
+
++ = 1 or multiple characters.
+
+[a-z]{10} = should be 10 lower case letters.
+[a-z]{5,8} = minimum 5 & maximum 8 lower chars.
+
+@Pattern(regex="^[A-Z][a-z]*")
+String userName; //first char would be capital & rest of the char should small.
+
+Handling error message
+--------------------------
+- should be defined in "messages.properties" file(file name must be messages.properties) & put this file in resources directory with application.properties.
+- must be followed below convention for mesage :
+	constraint.commandname.field=error message
+
+	for e.g.
+	---------------
+	NotEmpty.userBean.userName=Username is required. //userBean is ModelAttribute name.
+
+	in jsp
+	---------------
+	<form:errors/> //This tag is used to show the error message at a time or nearby each & every fields.
+
+
+	
+
+
+
 
 
 	
