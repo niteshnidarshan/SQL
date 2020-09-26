@@ -832,6 +832,8 @@ Data Binding
 =================
 - By binding a UI form with application object, we achieve data binding.
 - With JSP it can be achieved by adding the tag library as 
+- WebDataBinder - DispatcherServlet calls WebDataBinder to bind UI controls to bean.
+
 	<%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 
 	<form:form action="xxx" modelAttribute="userData">//form tag - first form is prefix & second one is tag name
@@ -874,6 +876,7 @@ Data Validation
 - Sun has provided Bean Validation API(in interfaces) to validate data on java bean class with annotation.
 - Hibernate has provided its implementation as Hibernate validator API.
 - For this need to use dependency - spring-boot-starter-validation.
+- WebDataBinder - DispatcherServlet calls WebDataBinder to bind UI controls to bean.
 
 @AssertTrue
 private boolean isActive; //Field value must be true
@@ -942,6 +945,51 @@ Handling error message
 	in jsp
 	---------------
 	<form:errors/> //This tag is used to show the error message at a time or nearby each & every fields.
+
+
+- BindingResult object stores all the validation errors.
+	@PostMapping("/xxx")
+	public String doRegister(@Valid @ModelAttribute UserBean userBean, BindingResult result){
+		//@ModelAttribute binds method parameter to ModelAttribute
+		//@Valid is indicating that the parameter bean is validated
+		//This handler method requires BindingResult object to store all the error messages while validate.
+		if(result.hasError()){
+			return "registration";//Returning same page, error messages will be appended by BindingResult.
+		}
+		else
+		{
+			//code
+		}
+	}
+
+
+Spring email API 
+-------------------
+JavaMailSender interface - JavaMailSenderImpl class - with SMTP server
+- To send email without attachment - SimpleMailMessage class is used
+
+Example[register-login system]
+---------------------------------
+If user not registered, system should show error message in the page & redirects to register by entering email.
+
+index.jsp [http://localhost:8080/crm/index]
+--------------------------------------------
+DispatcherServlet(stops request) 	<-> HandlerMapping
+						<-> RegisterController
+						<-> ViewResolver
+						->  view -> New User? Sign Up -> DS -> RegisterController -> view(register.jsp) -> 	First Name__________
+								 Existing User? Sign in									Last Name___________
+																					email_______________
+																							submit
+
+Submit -> DS -> RegisterController -> EmailService - send success email to user.
+
+Login -> DS -> LoginController -> success.jsp/ error/login.jsp
+
+
+
+
+	
 
 
 	
