@@ -1306,9 +1306,13 @@ Spring Boot Data JPA
 
 	* JPA(Java Persistence API specification from Sun to map java classes with table & JPQL) [JpaRepository interface]
 		- JPQL(Java Persistence Query Language)
-		** JpaRepository extends PagingAndSortingRepository, CrudRepository
+		** JpaRepository extends PagingAndSortingRepository ( -> CrudRepository)
 
 		- By default Spring boot uses Hibernate as a JPA Provider.
+
+
+	- One application may have many Entity; For each Entity should have separate Repository would be there to perform CRUD operations.
+
 
 	For e.g
 	-------------
@@ -1332,13 +1336,72 @@ Spring Boot Data JPA
 	- Need to create separate Repository for each Entity.
 	
 
-	https://groups.google.com/forum/#!forum/test_examples
+class material link-> [https://groups.google.com/forum/#!forum/test_examples]
+
+ 
+Need to consider for SPRING DATA JPA project
+-----------------------------------------------
+1) Enable JpaRepository [<jpa:repositories>]
+2) configure DataSource bean
+3) configure LocalContainerEntityManagerFactory bean
+4) configure HibernateJpaVendorAdaptor
+5) add multiple dependencies to pom.xml
 
 
+Need to consider for SPRING BOOT DATA JPA project
+---------------------------------------------------
+1) add spring-boot-starter-data-jpa
+2) create Repository interfaces
 
 
+Query creation Approaches
+-----------------------------
+1) Query creation by method name
+2) Query creation using @Query
+3) query creation using @NamedQuery
+
+# Query creation by method name keywords:
+	1) findBy
+	2) getBy
+	3) readBy
+	4) queryBy	
+
+	keyword+DataMember+<Operator>
+
+@Entity
+@Data
+public class Passenger {
+	@Id
+	private Integer passengerId;
+	private String firstName;
+	private String lastName;
+	private String email;
+	private String contactNumber;
+	private Integer seatNumber;
+}
+
+@Repository
+public interface PassangerRepository extends JpaRepository<Passenger, Integer>{
+	//JpaRepository<Entity_class_name, data_type_of_Id_field>
+
+	Passenger findByEmail(String email);
 	
+	List<Passenger> findByFirstName(String firstName);
 	
+	//List<Passenger> findBySeatNumberGreaterThanEquals(Integer seatNumber);
+}
+	
+save()
+saveAndFlush() // For both purposes- save or update
+deleteById()
+deleteAll()
+existById()
+findById()
+findAll()
+
+
+Can we use @OneToMany relation in Entity to fetch all data in Spring Boot Data JPA?
+Can we create Join related query by method?
 
 
 
