@@ -1387,8 +1387,17 @@ public interface PassangerRepository extends JpaRepository<Passenger, Integer>{
 	Passenger findByEmail(String email);
 	
 	List<Passenger> findByFirstName(String firstName);
-	
-	//List<Passenger> findBySeatNumberGreaterThanEquals(Integer seatNumber);
+
+	List<Passenger> findByEmailOrContactNumber(String email, Long contactNumber);
+
+	List<Passenger> findBySeatBetween(Integer seat1, Integer seat2);
+
+	List<Passenger> findByLastNameOrderByFirstNameAsc(String lastName);
+
+	List<Passenger> findBySeatNumberLt(Integer seatNumber);	
+
+	List<Passenger> findBySeatNumberGreaterThanEqual(Integer seatNumber);
+
 }
 	
 save()
@@ -1402,6 +1411,40 @@ findAll()
 
 Can we use @OneToMany relation in Entity to fetch all data in Spring Boot Data JPA?
 Can we create Join related query by method?
+
+# Query creation using @Query
+---------------------------------
+JPQL(Java Persistence Query Language)/ SQL
+
+select * from emp;// SQL QUERY
+select e from Employee e; // JPQL QUERY - works on Entity classes
+
+select empno, sal from emp;//SQL 
+select e.empNumber, e.salary from Employee e;//JPQL
+
+select * from emp where deptno=?//SQL
+select e from Employee e where e.deptNumber=?1//JPQL [?1...?n where 1 to n is index parameter]
+
+@Repository
+public interface Employee extends JpaRepository<Employee, Integer>{
+	
+	//JPQL
+	@Query("select e from Employee e where e.deptNumber=?1")
+	List<Employee> getEmpsByDeptno(Integer deptno); //any method name can be used here
+
+
+	//JPQL
+	@Query("select e.empNumber, e.empSal from Employee e") //Partial select query - returns List<Object[]>, array will contain empNum & sal
+	List<Object[]> readEmployees();
+
+
+	//SQL
+	@Query(value="select * from emp where sal>?", nativeQuery=true)//need to pass second argument as "nativeQuery=true" in case of SQL query
+	List<Employee> findEmpBySalary(double sal);
+	
+}
+
+
 
 
 
