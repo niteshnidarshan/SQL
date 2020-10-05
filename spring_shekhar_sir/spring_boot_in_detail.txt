@@ -1428,9 +1428,15 @@ select e from Employee e where e.deptNumber=?1//JPQL [?1...?n where 1 to n is in
 @Repository
 public interface Employee extends JpaRepository<Employee, Integer>{
 	
-	//JPQL
+	//JPQL - with index parameters(?1)
 	@Query("select e from Employee e where e.deptNumber=?1")
 	List<Employee> getEmpsByDeptno(Integer deptno); //any method name can be used here
+
+	//JPQL - with named parameters(:name) - more readable
+	@Query("select e from Employee e where e.deptNumber=:deptno and e.empSal=:sal")
+	List<Employee> getEmployees(Integer dno, double sal);
+	or
+	List<Employee> getEmployee(@Param("deptno") Integer dno, @Param("sal") Double sal);
 
 
 	//JPQL
@@ -1444,9 +1450,74 @@ public interface Employee extends JpaRepository<Employee, Integer>{
 	
 }
 
+Query creation using @NamedQuery
+------------------------------------
+- Write/define Named Query in Entity class & add the same name in method in multiple repository to execute the query.
+- JPQL query
+
+@Entity
+@NamedQuery(name="Employee.fetchEmpsByDeptno", query="select e from Employee e where e.deptNumber=?1")
+//naming convention for name - Entity_class_name.method_name
+@Table(name="emp")
+public class Employee {
+	---
+	---
+	---
+}
+
+@Repository
+public interface EmployeeRepository extends JpaRepository<Employee, Integer>{
+	List<Employee> fetchEmpsByDeptno(Integer dno);
+}
+
+Multiple named query - JPQL
+------------------------------
+@Entity
+@NamedQueries({
+	@NamedQuery(name="xxx", query="yyy"),
+	@NamedQuery(name="xxxx", query="yyy")
+})
+@Table(name="emp")
+public class Employee {
+	---
+	---
+	---
+}
 
 
+Query creation using @NamedNativeQuery
+----------------------------------------
+- Write/define Named Native Query in Entity class & add the same name in method in multiple repository to execute the query.
+- SQL query
 
+@Entity
+@NamedNativeQuery(name="Employee.fetchEmpsByDeptno", query="select * from emp where deptno=?1")
+//naming convention for name - Entity_class_name.method_name
+@Table(name="emp")
+public class Employee {
+	---
+	---
+	---
+}
+
+@Repository
+public interface EmployeeRepository extends JpaRepository<Employee, Integer>{
+	List<Employee> fetchEmpsByDeptno(Integer dno);
+}
+
+Multiple named native query - SQL Queries
+--------------------------------------------
+@Entity
+@NamedNativeQueries({
+	@NamedNativeQuery(name="nxxx", query="yyy"),
+	@NamedNativeQuery(name="nxxxx", query="yyy")
+})
+@Table(name="emp")
+public class Employee {
+	---
+	---
+	---
+}
 
 
 
