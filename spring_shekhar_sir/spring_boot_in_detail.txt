@@ -1519,6 +1519,92 @@ public class Employee {
 	---
 }
 
+e.g.
+=========
+STS -> starter project 
+
+group: com.sathyatech
+artifact : data.jpa1
+
+dependencies : oracle driver, Spring Data JPA[spring-boot-starter-data-jpa], lombok
+
+package com.jpa.entity
+@Entity
+@Data
+public class Passenger {
+	@Id
+	private Integer passengerId; //It will map with the column as "passanger_id"[capital letter in middle treats as _(underscore)] Or if it is different then use @Column(name="pid")
+	
+	@Column(length=15)//by default String mapping field in DB creates varchar2(255)
+	private String firstName; //first_name
+
+	@Column(length=15)
+	private String lastName;
+
+	@Column(length=25)
+	private String email;
+
+	private Long contactNumber;
+
+	private Integer seatNo;
+	
+}
+
+package com.jpa.repository
+@Repository
+public interface PassengerRepository extends JpaRepository<Passenger, Integer> {
+
+}
+
+package com.jpa.runner
+@Component
+public class MyRunner extends CommandLineRunner {
+
+	@Autowired
+	PassengerRepository repo;
+
+	@Override
+	public void run(String... args) throws Exception {
+		
+
+		//Insert record
+		Passenger p = new Passenger();
+		p.setPassengerId(101);
+		p.setFirstName("Ganesh");
+		p.setLastName("Gupta");
+		p.setEmail("ganesh@gmm.com");
+		p.setContactNumber(111111111223L);
+		p.setSeatNo(27);
+
+		repo.save(p);
+
+		
+
+		//Find By Id
+		//Optional object : Its like a container object - to avoid null pointer exception
+
+		Optional<Passenger> opt = repo.findById(101);
+		Passenger p = opt.get();
+	
+		System.out.println("Passenger Id = "+p.getPassengerId());
+		System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
+			
+	}
+
+}
+
+application.properties
+------------------------
+spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521:xe
+spring.datasource.username=system
+spring.datasource.password=y=tiger
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update ['create' = creates & drop - used for testing purpose | 'update' = does not drop, if table not exist in DB it creates]
+
+
+run app
 
 
 
