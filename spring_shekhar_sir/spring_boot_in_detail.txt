@@ -1531,6 +1531,8 @@ dependencies : oracle driver, Spring Data JPA[spring-boot-starter-data-jpa], lom
 package com.jpa.entity
 @Entity
 @Data
+//@NamedNativeQuery(name="Passenger.fetchPassangers", query="select * from passenger where first_name like '%k%' ")//SQL 
+@NamedQuery(name="Passenger.fetchPassangers", query="select p from passenger where p.firstName like '%k%' ")//JPQL 
 public class Passenger {
 	@Id
 	private Integer passengerId; //It will map with the column as "passanger_id"[capital letter in middle treats as _(underscore)] Or if it is different then use @Column(name="pid")
@@ -1553,7 +1555,13 @@ public class Passenger {
 package com.jpa.repository
 @Repository
 public interface PassengerRepository extends JpaRepository<Passenger, Integer> {
-
+	
+	Passenger findByEmail(String email);
+	
+	@Query("select p from Passenger p where p.seatNo>=:from and p.seatNo<=:to")
+	List<Passenger> readPassengerBetween(@Param("from") Integer from, @Param("to") Integer to);// @Param binds method parameter to named parameter of query
+	
+	List<Passenger> fetchPassangers();//from @NamedNativeQuery from Entity class
 }
 
 package com.jpa.runner
@@ -1583,12 +1591,37 @@ public class MyRunner extends CommandLineRunner {
 		//Find By Id
 		//Optional object : Its like a container object - to avoid null pointer exception
 
-		Optional<Passenger> opt = repo.findById(101);
-		Passenger p = opt.get();
+		Optional<Passenger> opt = repo.findById(101);//return Optional
+		Passenger p = opt.get();//
 	
 		System.out.println("Passenger Id = "+p.getPassengerId());
 		System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
-			
+
+		
+		//Find All
+		List<Passenger> passengerList = repo.findAll();//Returns iterable object
+		
+		passengerList.forEach(p->{
+			System.out.println("Passenger Id = "+p.getPassengerId());
+			System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
+			sysout("-----------");
+		});
+
+		//Custom JPA method query
+		Passenger p = repo.findByEmail("meena@gmail.com");
+			System.out.println("Passenger Id = "+p.getPassengerId());
+			System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
+
+		
+		//Custom method by @NamedQuery
+		List<Passenger> passengerList = repo. fetchPassangers();
+		
+		passengerList.forEach(p->{
+			System.out.println("Passenger Id = "+p.getPassengerId());
+			System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
+			sysout("-----------");
+		});	
+		
 	}
 
 }
@@ -1605,6 +1638,38 @@ spring.jpa.hibernate.ddl-auto=update ['create' = creates & drop - used for testi
 
 
 run app
+
+
+Sorting
+--------------
+Sort sort = Sort.by("firstName").ascending();//By default ascending
+List<Passenger> passengerList = repo.findAll(sort);
+
+Sort sort = Sort.by("firstName").ascending().and(Sort.by("seatNo").descending());
+List<Passenger> passengerList = repo.findAll(sort);
+
+Pagination
+--------------
+- get data by page wise - it requires Pageable interface & PageRequest class.
+
+Pageable pageable = PageRequest.of(0,10,Sort.by("seatNo"));//first_page, number_of_records_per_page, sort_obj
+
+Page<Passenger> page = repo.findAll(pageable);
+
+page.getContent()
+hasNext()
+hasPrevious()
+getNumber()
+isFirst()
+isLast()
+
+
+
+
+
+
+
+
 
 
 
