@@ -1,3 +1,5 @@
+class material link-> [https://groups.google.com/forum/#!forum/test_examples]
+
 Spring Boot is a new model to develop spring applications.
 
 Features
@@ -1663,14 +1665,100 @@ getNumber()
 isFirst()
 isLast()
 
+MVC app for pagination
+----------------------------
+Jpa-Pagination
 
+pom.xml - web, data-jpa, tomcat-embed-jasper, jstl, mysql-connector-java
 
+package com.pagination.entity
+@Entity
+@Table(name="emp")
+public class Employee {
+	@Id
+	private Integer empno;
+	
+	private String ename;
+}
 
+package com.pagination.repository
+@Repository
+public interface EmployeeRepository extends JpaRepository<Employee, Integer> {}
 
+package com.pagination.service
+public interface IEmployeeService {
+	Page<Employee> findEmployees(int pageIndex);
+}
 
+package com.pagination.service.impl
+public class EmployeeServiceImpl implements IEmployeeService {
 
+	@Autowired
+	EmployeeRepository repository;
+	@Override
+	public Page<Employee> findEmployees(int pageIndex) {
+		Pageable pageable = PageRequest.of(pageIndex, 3, Sort.by("sal"));
+		return repository.findAll(pageable);
+	}
 
+}
 
+package com.pagination.controller
+@Controller
+public class EmployeeController {
+	@Autowired 
+	IEmployeeService service;
+
+	@GetEmployee(value="/emps") //emps?pageIndex=1
+	public String getEmployee(@RequestParam(defaultValue="0") int pageIndex, ModelMap modelMap) {
+
+		//@RequestParam binds request parameters with method parameters
+		//ModelMap object is accessible to the JSP page.
+
+		Page<Employee> page = service.findEmployees(pageIndex);
+		List<Employee> empList = page.getContent();
+		modelMap.addAttribute("employees", empList);
+		modelMap.addAttribute("next", page.hasNext()); //if(true) currentpage+1
+		modelMap.addAttribute("back", page.hasPrevious()); //if(true) currentpage-1
+		modelMap.addAttribute("currentPage", getNumber());
+		
+		return "ShowEmployee";
+
+	}
+}
+
+src/main/webapp/WEB-INF/views/ShowEmployees.jsp
+ShowEmployees.jsp
+
+<%@taglib uri="" prefix="c"%>
+<table>
+	<header>
+		<tr>
+			<th>E. No</th>
+			<th>E. Name</th>
+			<th>Sal</th>
+			<th>Dept No</th>
+		</tr>
+	</header>
+	<c:if test="${!empty employees}">
+		<c:forEach items="${employees}" var="e">
+			<tr>		
+			<td><c:out value="${e.empno}"/></td>
+			<td><c:out value="${e.ename}"/></td>
+			<td><c:out value="${e.sal}"/></td>
+			<td><c:out value="${e.deptno}"/></td>
+			</tr>
+		</c:forEach>
+	</c:if>
+<table>
+
+<c:if test="${back}">
+	<a href="emps?pageIndex=${currentPage-1}">Back</a>
+</c:if>
+
+<c:if test="${next}">
+	<a href="emps?pageIndex=${currentPage+1}">Next</a>
+</c:if>
 
 
 
