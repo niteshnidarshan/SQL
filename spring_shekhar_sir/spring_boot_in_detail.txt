@@ -1730,7 +1730,7 @@ public class EmployeeController {
 src/main/webapp/WEB-INF/views/ShowEmployees.jsp
 ShowEmployees.jsp
 
-<%@taglib uri="" prefix="c"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <table>
 	<header>
 		<tr>
@@ -1759,6 +1759,77 @@ ShowEmployees.jsp
 <c:if test="${next}">
 	<a href="emps?pageIndex=${currentPage+1}">Next</a>
 </c:if>
+
+application.properties
+-------------------------
+server.servlet.context-path=/Pagination
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.suffix=.jsp
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/test
+spring.datasource.username=root
+spring.datasource.password=root
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update ['create' = creates & drop - used for testing purpose | 'update' = does not drop, if table not exist in DB it creates]
+
+mysql> use db_name;
+mysql> use test;
+mysql> select * from emp; //empno|ename|sal|deptno
+
+
+Relationships(Associations)
+=================================
+- To perform crud operations on multiple Entity classes at a time, we need association.
+
+1) one-to-many
+2) many-to-one
+3) many-to-many
+4) one-to-one
+
+1) OneToMany
+-----------------
+Customer(1) -> Order(M)
+
+Parent(1) -> Chile(M)
+
+CUSTOMER [CUSTID(PK), CUSTNAME]
+ORDERS [ORDERID(PK), ITEMNAME, ORDERDATE, CUSTID_FK(FK)]
+
+Cascade=ALL ["Which operations to be cascaded" - "All means Save, Update, Delete" operations are cascaded on associated tables] 
+
+@Entity
+public class Customer {
+	@Id
+	private Integer custid;
+	private String custname;
+	
+	@OneToMany(cascade=CascadeType.ALL) //
+
+	@JoinColumn(name="custid_fk", referencedColumnName="custid") //takes [foreign key column - Foreign key exist in child table] and [referencedColumnName - primary key column in parent table] - referencedColumnName property is optional.
+	private Set<Order> orders;
+	
+}
+
+@Entity
+@Table(name="ORDERS")
+public class Order {
+	@Id
+	private Integer orderid;
+	private LocalDate orderdate;
+	private String itemname;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
