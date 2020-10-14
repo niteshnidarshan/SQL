@@ -1805,7 +1805,7 @@ public class Customer {
 	private Integer custid;
 	private String custname;
 	
-	@OneToMany(cascade=CascadeType.ALL) //
+	@OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER) //To be cascaded to the joined child table with all operations as save, update, delete
 
 	@JoinColumn(name="custid_fk", referencedColumnName="custid") //takes [foreign key column - Foreign key exist in child table] and [referencedColumnName - primary key column in parent table] - referencedColumnName property is optional.
 	private Set<Order> orders;
@@ -1820,6 +1820,131 @@ public class Order {
 	private LocalDate orderdate;
 	private String itemname;
 }
+
+
+@OneToMany
+@JoinColumn
+
+Set<Order> orders = new HashSet<Order>();
+orders.add(order1);
+orders.add(order2);
+orders.add(order3);
+
+customer.setOrder(orders);
+
+customerRepository.save(customer);
+
+@OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)//second parameter is optional
+@JoinColumn(name="foriegn_key", referencedColumnName="primary_key_refered_by_foriegn_key")//second parameter is optional
+
+
+e.g onetomay app 
+------------------------
+
+
+##Watch 2 days vidoes on desktop & update this notes.
+
+
+
+ManyToOne relationship
+---------------------------
+spring starter project ->
+name = manytoone
+package = mto
+dependencies = spring data JPA, lombok, oracle driver
+
+*Lombok need to activate in IDE first time : 
+1)Go to c:/users/admin/.m2/repository/org/projectlombok/lombok/1.18.12/lombok-1.18.12.jar
+2)double click on lombok-1.18.12.jar
+3)in the IDE selector window select your IDE, if IDE is not listed then click on specify location of installed IDE and select IDE.exe
+4)click on install/update
+5)quit it & restart IDE.
+
+maven local repository = c:/users/admin/.m2/repository/
+
+com.mto
+com.mto.entity
+com.mto.repository
+com.mto.runner
+
+
+com.mto.entity
+@Entity
+@Data //@Getter + @Setter + @RequiredArgsConstroctor + @ToString + @EqualsAndHashCode
+@NoArgsConstructor
+public class Customer {
+	@Id
+	private Integer custId;
+	
+	@Column(length=15)
+	private String custName;
+}
+
+@Entity
+@Data
+@NoArgsConstructor
+@Table(name="ORDERS")
+public class Order {
+	@Id
+	private Integer id;
+
+	private String itemName;
+
+	private LocalDate orderDate;
+
+	//Many Orders for One Customer - At the time of sav
+	@ManyToOne(casecade=CasecadeType.ALL)//Here default fetch type is eager, not lazy. But in OneToMany default is lazy loading
+	@JoinColumn(name="CUSTID_PK")//foriegn key column
+	private Customer customer;//Reference variable to parent Entity class.
+}
+
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Integer> {}
+
+@Repository
+public interface OrderRepository extends JpaRepository<Order, Integer> {}
+
+@Component
+public class MyRunner implements CommandLineRunner throws Exception{
+	@Autowired
+	OrderRepository orderRepo;
+
+	@Override
+	public void run(String... args){
+
+		Customer customer = new Customer();
+		customer.setId(101);
+		customer.setCustName("A");
+
+		Order order1 = new Order();
+		order1.setId(11101);
+		order1.setItemName("Laptop");
+
+		Order order2 = new Order();
+		order2.setId(11102);
+		order2.setItemName("Bag");
+
+
+		//In Many to One, in 'many' Entity only need to set 'one' Entity
+		order1.setCustomer(customer);
+		order2.setCustomer(customer);
+
+		orderRepo.save(order1);//first customer Entity will be inserted then order entity will be saved.
+		orderRepo.save(order2);//Only the order entity will be inserted not customer at this time.
+
+		//To check eager loading in Many to one
+		//select order, it should fetch customer also.
+		//If fetch type is set to lazy, then only order will be selected not customer.
+		Order ord = orderRepo.findById(11101).get(); 
+
+		//When an order is deleted, customer will also be deleted if one order is associated with the customer. If the customer is having another order associated then delete operation will throw Exception[integrity constraint violation - child record found]. To resolve this change the cascade type NOT to All
+		orderRepo.deleteById(11101);
+
+	}
+}
+
+application.properties
+-------------------------
 
 
 
