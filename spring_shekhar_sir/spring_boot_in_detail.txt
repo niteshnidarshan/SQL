@@ -48,7 +48,7 @@ Micro-services
 - Split of large system into smalls.
 - Independent responsibility for each micro services.
 - Scaling [If one micro-service is having downtime/ load - only that particular micro-service can be scaled up without interrupting others.]
-- Multi language development possible (Interoerability). 
+- Multi language development possible (Interoperability). 
 
 
 pom.xml
@@ -1946,10 +1946,165 @@ public class MyRunner implements CommandLineRunner throws Exception{
 application.properties
 -------------------------
 
+Many-To-Many
+--------------
+Category(1) - Item(M)
+Item(1) - Category(M)
+
+Book(1) - Author(M)
+Author(1) - Books(M)
+
+**ManyToMany relationship needs a join table with two foreign key columns.
+
+Book(BookId, BookName, authorid_fk)
+Author(AuthorId, AuthorName, bookid_fk)
+BOOKS_AUTHORS(bookid_fk, authorid_fk) - Join Table
+
+@JoinTable has to provide these three properties :
+	1) name
+	2) joinColumns
+	3) inverseJoinColumns
+
+	Only persist operation can be cascaded.
 
 
+package com.mtm.Entity
+@Entity
+public class Book {
+	@Id
+	private Integer bookid;
+	private String bookname;
+	
+	@ManyToMany(casecade=CasecadeType.ALL)
+	@JoinTable(name="BOOKS_AUTHORS", joinColumns=@JoinColumn(name="BOOKID_FK"), inverseJoinColumns=@JoinColumn(name="AUTHORID_FK"))
+	private Set<Author> authors;
+
+}
+package com.mtm.Entity
+@Entity
+public class Author {
+	@Id
+	private Integer authorid;
+	private String authorname;
+
+	@ManyToMany(cascade=CascadeType.ALL)
+	@JoinTable(name="BOOKS_AUTHORS", joinColumns=@JoinColumn(name="AUTHORID_FK"), inverseJoinColumns=@JoinColumn(name="BOOK_FK"))
+	private List<Book> books;
+}
+
+package com.mtm.repository
+@Repository
+public interface AuthorRepository extends JpaRepository<Autor, Integer> {}
+
+@Repository
+public interface BookRepository extends JpaRepository<Book, Integer> {}
 
 
+package com.mtm.runner;
+@Component
+public class MyRunner implements CommandLineRunner {
+	@Autowired
+	BookRepository bookRepo;
+
+	@Autowired
+	AuthorRepository authorRepo;
+
+	@Transactional // at method level or transaction level - 
+	@Override
+	public void run(String... args) throws Exception {
+		/*
+
+		Book b1 = new Book();
+		b1.setBookId(1);
+		b1.setBookName("Java");
+		
+		Author a1 = new Author();
+		a1.setAuthorid(91);
+		a1.setAuthorname("A");
+
+		Author a2 = new Author();
+		a2.setAuthorid(92);
+		a2.setAuthorname("B");
+
+		List<Author> authorsList = new ArrayList<>();
+		authorsList.add(a1);
+		authorsList.add(a2);
+
+		b1.setAuthors(authorsList);
+
+		Book b2 = new Book();
+		b2.setBookId(2);
+		b2.setBookName("Spring");
+
+		Book b3 = new Book();
+		b3.setBookId(3);
+		b3.setBookName("Oracle");
+
+		List<Book> booksList = new ArrayList<>();
+		booksList.add(b2);
+		booksList.add(b3);
+
+		a2.setBooks(booksList);
+
+		bookRepo.save(b1);
+
+		*/
+
+		/**
+		* Add a new author to a book
+		*
+		*	1) Create a Author
+		*	2) get book object from db
+		*	3) get authorList from book object
+		*	4) add newly created author to authorList
+		* 	5) Use @Transactional or make a change in Entity to fetchType = EAGER.
+		*/
+		Author new_author = new Author();
+		new_author.setAuthorid(93);
+		new_author.setAuthorname("C");
+
+		Book b = bookRepo.findById(1).get();
+		List<Author> authList = b.getAuthors();
+		authList.add(new_author);
+
+		/**
+		* Suppose need to remove an author from the specific book - use authList.remove(new_author);
+		*
+		*/
+		
+
+		//authorRepo.save(a2);//after inserting b1, uncomment this & comment above line & execute
+		
+	}
+}
+
+application.properties
+----------------------------
+
+SQL
+----------------------------
+select * from book;
+select * from author;
+select * from books_authors;
+
+OneToOne
+-----------------
+person-passport
+person-dl
+desktop-employee
+
+OneToOne relationship can be provided by two ways :
+1) one to one with Foreign Key
+
+	**Foreign key should not contain duplicate or null in child table
+
+	PERSON (PERSONID, PERSONNAME)
+	PASSPORT (PASSPORTID, EXPDATE, PERSONID_FK) // PERSONID_FK should not contain duplicate or null
+
+2) one to one with Primary Key
+	
+	PERSON (PERSONID, PERSONNAME)
+	PASSPORT (PASSPORTID, EXPDATE, PERSONID_FK)
 
 
 
