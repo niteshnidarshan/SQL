@@ -25,7 +25,7 @@ SpringBoot Restful Web services
 SpringBoot Data Redis
 SpringBoot Security Oath2
 SpringBoot Profiles
-SpringBoot Atuator
+SpringBoot Actuator
 SpringBoot Batch
 SpringBoot Kafka
 
@@ -124,7 +124,7 @@ public class DemoApp {
 		- CommandLineRunner is an interface provides a method run().
 		- We can define multiple CommandLineRunner by implementing in our classes, but needs provide order of execution else will run randomly.
 
-		// These all for steps are called bootstrapping(initialising the application).
+		// These all four steps are called bootstrapping(initialising the application).
 		
 	}
 }
@@ -2094,24 +2094,240 @@ person-dl
 desktop-employee
 
 OneToOne relationship can be provided by two ways :
-1) one to one with Foreign Key
+1) one to one with Foreign Key - id in the parent & child table will be different
 
 	**Foreign key should not contain duplicate or null in child table
 
 	PERSON (PERSONID, PERSONNAME)
 	PASSPORT (PASSPORTID, EXPDATE, PERSONID_FK) // PERSONID_FK should not contain duplicate or null
 
-2) one to one with Primary Key
+2) one to one with Primary Key - id in the parent & child table will be same
 	
 	PERSON (PERSONID, PERSONNAME)
 	PASSPORT (PASSPORTID, EXPDATE, PERSONID_FK)
 
+@ManyToOne
+@JoinColumn(name="fk", unique=true)
+
+** Set parent entity reference to the child class.
+
+e.g.
+----------
+@Entity
+public class Person {
+	@Id
+	private Integer personid;
+
+	private String personname;
+}
+
+@Entity
+public class Passport { //Child class
+
+	@Id
+	private Integer passportNo;
+
+	private LocalDate expDate;
+
+	@ManyToOne(cascade=CascadeType.ALL)
+	@JoiColumn(name="PERSONID_FK", unique=true) //One to one Foreign key
+	private Person person;//parent reference in child
+}
+
+@Repository
+public interface PassportRepository extends JpaRepository<Passport, Integer>{}
+@Repository
+public interface PersonRepository extends JpaRepository<Person, Integer>{}
+
+package com.oto.runner;
+@Component
+public class MyRunner implements CommandLineRunner {
+	
+	@Autowired
+	PassportRepository repo;
+
+	@Override
+	public void run(String... args) throws Exception {
+		Person person = new Person();
+		person.setPersonId(101);
+		person.setPersonName("ANIL");
+
+		/*Passport passport = new Passport();
+		passport.setPassportNo(11231);
+		passport.setExpDate(LocalDate.of(2025, 12, 31));
+		passport.setPerson(person); //** Set parent entity reference to the child class.
+
+		repo.save(passport);*/
+
+		//To check one to one - create a new passport & assign the same peron - 101 - should throw unique constraint violation exception.
+		Passport new_passport = new Passport();
+		new_passport.setPassportNo(11233);
+		new_passport.setExpDate(LocalDate.of(2024, 12, 31));
+		new_passport.setPerson(person);
+
+		repo.save(new_passport);
+		
+	}
+
+}
+
+By making a primary key as a foreign key in child entity, will make One to One relationship
+
+OneToOne with primary key
+--------------------------
+- Without creating foreign key field in child table, it can be maintained OneToOne relationship.
+ 
+@GenericGenerator - to define generator strategy for Id
+@Id
+@GeneratedValue - to assign GenericGenrator
+
+STS - file - new project - "onetoonepk"
+dependencies - Lombok, Oracle Driver, Spring Data Jpa
+
+package com.oto.entity
+@Entity
+public class Person {
+	@Id
+	private Integer personId;
+
+	private String personName;
+}
+
+@Entity
+public class Passport { //Child class - make primary key as foreign key - copy id of the parent entity to child entity.
+
+	@GenericGenerator(name = "g1", strategy = "foreign", parameters= @Parameter(name = "property", value = "person")) 
+	//Foreign is a hibernate gennerator - to use this generator in generic manner use @GenericGenerator. "foreign" strategey copy id from parent property.
+	//In @Parameter(name = "property", value = "person") //person is a parent property
+
+	@Id
+	@GeneratedValue(generator="g1")
+	private Integer passportNo;
+
+	private LocalDate expDate;
+
+	@OneToOne(cascade=CascadeType.ALL)
+	//In this case no JoinColumn required
+	@PrimaryKeyJoinColumn //It tells that primary key is used as a foreign key
+	private Person person;//parent reference in child
+}
+
+@Repository
+public interface PassportRepository extends JpaRepository<Passport, Integer>{}
+@Repository
+public interface PersonRepository extends JpaRepository<Person, Integer>{}
+
+package com.oto.runner;
+@Component
+public class MyRunner implements CommandLineRunner {
+	
+	@Autowired
+	PassportRepository repo;
+
+	@Override
+	public void run(String... args) throws Exception {
+		Person person = new Person();
+		person.setPersonId(101);
+		person.setPersonName("ANIL");
+
+		Passport passport = new Passport();
+		//passport.setPassportNo(11231); // Not required now - person_no will be copied to the passportNo - So it will be 101 as person_id
+		passport.setExpDate(LocalDate.of(2025, 12, 31));
+		passport.setPerson(person); //** Set parent entity reference to the child class.
+
+		repo.save(passport); //passport & person will be saved but id of the both column would be same now.
+ 
+		
+	}
+
+}
+
+Joining - To read data from multiple entities
+--------------------------------------------------
+* To read the data from multiple tables in a single query - Join is used
+For e.g. to fetch data from Customer & Order entities together at once.
+
+A customer has many orders 
+CUSTOMER(custid, custname, ...)
+ORDER(orderid, itemname, orderdate, ...)
+
+We can use JPQL(by using entity properties)/ SQL(by using table feilds) 
+
+Inner Join (Default join) - fetch only matching data
+Left Outer Join - more data from left
+right Outer Join
+full join
+
+
+Inner Join - SQL
+---------------------
+select c.custname, o.itemname, o.orderdate from customer c join order o where c.custid=o.custid_fk;
+
+Inner Join - JPQL
+---------------------
+select c.custname, o.itemname, o.orderdate from Customer c join c.orders o
+
+//parent entity class having collection reference variable of child - here c.orders represents collection reference variable.
+
+In ToMany
+-------------
+select c.customerName, o.itemName, o.orderDate from Customer c join c.orders o; //Inner Join
+
+
+In ManyToOne
+-------------
+select c.customerName, o.itemName, o.orderDate from Order o join o.customer c; //Inner Join
+
+In OneToMany project
+------------------------
+package com.otm.repository
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Integer> {
+	
+	@Query("select c.custName, o.iteName, o.orderDate from Customer c inner join c.order o "); //JPQL | inner join fetches only matching data | it will return List<Object[]>
+	List<Objetc[]> readData();
+
+	or with left outer join
+	@Query("select c.custName, o.iteName, o.orderDate from Customer c left outer join c.order o "); //JPQL | left Outer join fetches more data from left table.
+	List<Objetc[]> readLeftOuterData();
+
+	or with SQL join
+	@Query(value = "", nativeQuery = true)
+	List<Objetc[]> readSQLData();
+	
+}
+
+public class MyRunner implements CommandLineRunner{
+
+	@Autowired
+	private CustomerRepository custRepo;
+
+	public void run(String... args){
+		List<Object[]> objList = custRepo.readData();
+		objList.forEach(obj -> {
+			System.out.println(obj[0]+" , "+obj[1]+" , "+obj[2]); //customerName, itemName, orderDate
+		});
+	}
+}
+
+1+N selects problem in Hibernate/ JPQL
+=========================================
+Suppose there are three customer on Customer table - for each customer multiple orders are there in Order table. 
+
+select all the customers & read all of their orders.
+1) one select statement will be executed to select all three customers.
+2) then for each customers separate select statements will be executed to fetch their associated orders 
+- So total number of select statement will be 1+3
+- It decreases application performance
 
 
 
 
 
 
+
+
+ 
 
 
 

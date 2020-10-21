@@ -147,3 +147,5 @@ where dept.deptno = emp.deptno
 group by DNAME
 order by 2 desc;
 
+select * from emp where empno=7369;
+
