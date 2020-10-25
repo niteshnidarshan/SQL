@@ -1,0 +1,607 @@
+
+
+
+Relationships(Associations)
+=================================
+- To perform crud operations on multiple Entity classes at a time, we need association.
+
+1) one-to-many
+2) many-to-one
+3) many-to-many
+4) one-to-one
+
+1) OneToMany
+-----------------
+Customer(1) -> Order(M)
+
+Parent(1) -> Chile(M)
+
+CUSTOMER [CUSTID(PK), CUSTNAME]
+ORDERS [ORDERID(PK), ITEMNAME, ORDERDATE, CUSTID_FK(FK)]
+
+Cascade=ALL ["Which operations to be cascaded" - "All means Save, Update, Delete" operations are cascaded on associated tables] 
+
+@Entity
+public class Customer {
+	@Id
+	private Integer custid;
+	private String custname;
+	
+	@OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER) //To be cascaded to the joined child table with all operations as save, update, delete
+
+	@JoinColumn(name="custid_fk", referencedColumnName="custid") //takes [foreign key column - Foreign key exist in child table] and [referencedColumnName - primary key column in parent table] - referencedColumnName property is optional.
+	private Set<Order> orders;
+	
+}
+
+@Entity
+@Table(name="ORDERS")
+public class Order {
+	@Id
+	private Integer orderid;
+	private LocalDate orderdate;
+	private String itemname;
+}
+
+
+@OneToMany
+@JoinColumn
+
+Set<Order> orders = new HashSet<Order>();
+orders.add(order1);
+orders.add(order2);
+orders.add(order3);
+
+customer.setOrder(orders);
+
+customerRepository.save(customer);
+
+@OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)//second parameter is optional
+@JoinColumn(name="foriegn_key", referencedColumnName="primary_key_refered_by_foriegn_key")//second parameter is optional
+
+
+e.g onetomay app 
+------------------------
+
+
+##Watch 2 days vidoes on desktop & update this notes.
+
+
+
+ManyToOne relationship
+---------------------------
+spring starter project ->
+name = manytoone
+package = mto
+dependencies = spring data JPA, lombok, oracle driver
+
+*Lombok need to activate in IDE first time : 
+1)Go to c:/users/admin/.m2/repository/org/projectlombok/lombok/1.18.12/lombok-1.18.12.jar
+2)double click on lombok-1.18.12.jar
+3)in the IDE selector window select your IDE, if IDE is not listed then click on specify location of installed IDE and select IDE.exe
+4)click on install/update
+5)quit it & restart IDE.
+
+maven local repository = c:/users/admin/.m2/repository/
+
+com.mto
+com.mto.entity
+com.mto.repository
+com.mto.runner
+
+
+com.mto.entity
+@Entity
+@Data //@Getter + @Setter + @RequiredArgsConstroctor + @ToString + @EqualsAndHashCode
+@NoArgsConstructor
+public class Customer {
+	@Id
+	private Integer custId;
+	
+	@Column(length=15)
+	private String custName;
+}
+
+@Entity
+@Data
+@NoArgsConstructor
+@Table(name="ORDERS")
+public class Order {
+	@Id
+	private Integer id;
+
+	private String itemName;
+
+	private LocalDate orderDate;
+
+	//Many Orders for One Customer - At the time of sav
+	@ManyToOne(casecade=CasecadeType.ALL)//Here default fetch type is eager, not lazy. But in OneToMany default is lazy loading
+	@JoinColumn(name="CUSTID_PK")//foriegn key column
+	private Customer customer;//Reference variable to parent Entity class.
+}
+
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Integer> {}
+
+@Repository
+public interface OrderRepository extends JpaRepository<Order, Integer> {}
+
+@Component
+public class MyRunner implements CommandLineRunner throws Exception{
+	@Autowired
+	OrderRepository orderRepo;
+
+	@Override
+	public void run(String... args){
+
+		Customer customer = new Customer();
+		customer.setId(101);
+		customer.setCustName("A");
+
+		Order order1 = new Order();
+		order1.setId(11101);
+		order1.setItemName("Laptop");
+
+		Order order2 = new Order();
+		order2.setId(11102);
+		order2.setItemName("Bag");
+
+
+		//In Many to One, in 'many' Entity only need to set 'one' Entity
+		order1.setCustomer(customer);
+		order2.setCustomer(customer);
+
+		orderRepo.save(order1);//first customer Entity will be inserted then order entity will be saved.
+		orderRepo.save(order2);//Only the order entity will be inserted not customer at this time.
+
+		//To check eager loading in Many to one
+		//select order, it should fetch customer also.
+		//If fetch type is set to lazy, then only order will be selected not customer.
+		Order ord = orderRepo.findById(11101).get(); 
+
+		//When an order is deleted, customer will also be deleted if one order is associated with the customer. If the customer is having another order associated then delete operation will throw Exception[integrity constraint violation - child record found]. To resolve this change the cascade type NOT to All
+		orderRepo.deleteById(11101);
+
+	}
+}
+
+application.properties
+-------------------------
+
+Many-To-Many
+--------------
+Category(1) - Item(M)
+Item(1) - Category(M)
+
+Book(1) - Author(M)
+Author(1) - Books(M)
+
+**ManyToMany relationship needs a join table with two foreign key columns.
+
+Book(BookId, BookName, authorid_fk)
+Author(AuthorId, AuthorName, bookid_fk)
+BOOKS_AUTHORS(bookid_fk, authorid_fk) - Join Table
+
+@JoinTable has to provide these three properties :
+	1) name
+	2) joinColumns
+	3) inverseJoinColumns
+
+	Only persist operation can be cascaded.
+
+
+package com.mtm.Entity
+@Entity
+public class Book {
+	@Id
+	private Integer bookid;
+	private String bookname;
+	
+	@ManyToMany(casecade=CasecadeType.ALL)
+	@JoinTable(name="BOOKS_AUTHORS", joinColumns=@JoinColumn(name="BOOKID_FK"), inverseJoinColumns=@JoinColumn(name="AUTHORID_FK"))
+	private Set<Author> authors;
+
+}
+package com.mtm.Entity
+@Entity
+public class Author {
+	@Id
+	private Integer authorid;
+	private String authorname;
+
+	@ManyToMany(cascade=CascadeType.ALL)
+	@JoinTable(name="BOOKS_AUTHORS", joinColumns=@JoinColumn(name="AUTHORID_FK"), inverseJoinColumns=@JoinColumn(name="BOOK_FK"))
+	private List<Book> books;
+}
+
+package com.mtm.repository
+@Repository
+public interface AuthorRepository extends JpaRepository<Autor, Integer> {}
+
+@Repository
+public interface BookRepository extends JpaRepository<Book, Integer> {}
+
+
+package com.mtm.runner;
+@Component
+public class MyRunner implements CommandLineRunner {
+	@Autowired
+	BookRepository bookRepo;
+
+	@Autowired
+	AuthorRepository authorRepo;
+
+	@Transactional // at method level or transaction level - 
+	@Override
+	public void run(String... args) throws Exception {
+		/*
+
+		Book b1 = new Book();
+		b1.setBookId(1);
+		b1.setBookName("Java");
+		
+		Author a1 = new Author();
+		a1.setAuthorid(91);
+		a1.setAuthorname("A");
+
+		Author a2 = new Author();
+		a2.setAuthorid(92);
+		a2.setAuthorname("B");
+
+		List<Author> authorsList = new ArrayList<>();
+		authorsList.add(a1);
+		authorsList.add(a2);
+
+		b1.setAuthors(authorsList);
+
+		Book b2 = new Book();
+		b2.setBookId(2);
+		b2.setBookName("Spring");
+
+		Book b3 = new Book();
+		b3.setBookId(3);
+		b3.setBookName("Oracle");
+
+		List<Book> booksList = new ArrayList<>();
+		booksList.add(b2);
+		booksList.add(b3);
+
+		a2.setBooks(booksList);
+
+		bookRepo.save(b1);
+
+		*/
+
+		/**
+		* Add a new author to a book
+		*
+		*	1) Create a Author
+		*	2) get book object from db
+		*	3) get authorList from book object
+		*	4) add newly created author to authorList
+		* 	5) Use @Transactional or make a change in Entity to fetchType = EAGER.
+		*/
+		Author new_author = new Author();
+		new_author.setAuthorid(93);
+		new_author.setAuthorname("C");
+
+		Book b = bookRepo.findById(1).get();
+		List<Author> authList = b.getAuthors();
+		authList.add(new_author);
+
+		/**
+		* Suppose need to remove an author from the specific book - use authList.remove(new_author);
+		*
+		*/
+		
+
+		//authorRepo.save(a2);//after inserting b1, uncomment this & comment above line & execute
+		
+	}
+}
+
+application.properties
+----------------------------
+
+SQL
+----------------------------
+select * from book;
+select * from author;
+select * from books_authors;
+
+OneToOne
+-----------------
+person-passport
+person-dl
+desktop-employee
+
+OneToOne relationship can be provided by two ways :
+1) one to one with Foreign Key - id in the parent & child table will be different
+
+	**Foreign key should not contain duplicate or null in child table
+
+	PERSON (PERSONID, PERSONNAME)
+	PASSPORT (PASSPORTID, EXPDATE, PERSONID_FK) // PERSONID_FK should not contain duplicate or null
+
+2) one to one with Primary Key - id in the parent & child table will be same
+	
+	PERSON (PERSONID, PERSONNAME)
+	PASSPORT (PASSPORTID, EXPDATE, PERSONID_FK)
+
+@ManyToOne
+@JoinColumn(name="fk", unique=true)
+
+** Set parent entity reference to the child class.
+
+e.g.
+----------
+@Entity
+public class Person {
+	@Id
+	private Integer personid;
+
+	private String personname;
+}
+
+@Entity
+public class Passport { //Child class
+
+	@Id
+	private Integer passportNo;
+
+	private LocalDate expDate;
+
+	@ManyToOne(cascade=CascadeType.ALL)
+	@JoiColumn(name="PERSONID_FK", unique=true) //One to one Foreign key
+	private Person person;//parent reference in child
+}
+
+@Repository
+public interface PassportRepository extends JpaRepository<Passport, Integer>{}
+@Repository
+public interface PersonRepository extends JpaRepository<Person, Integer>{}
+
+package com.oto.runner;
+@Component
+public class MyRunner implements CommandLineRunner {
+	
+	@Autowired
+	PassportRepository repo;
+
+	@Override
+	public void run(String... args) throws Exception {
+		Person person = new Person();
+		person.setPersonId(101);
+		person.setPersonName("ANIL");
+
+		/*Passport passport = new Passport();
+		passport.setPassportNo(11231);
+		passport.setExpDate(LocalDate.of(2025, 12, 31));
+		passport.setPerson(person); //** Set parent entity reference to the child class.
+
+		repo.save(passport);*/
+
+		//To check one to one - create a new passport & assign the same peron - 101 - should throw unique constraint violation exception.
+		Passport new_passport = new Passport();
+		new_passport.setPassportNo(11233);
+		new_passport.setExpDate(LocalDate.of(2024, 12, 31));
+		new_passport.setPerson(person);
+
+		repo.save(new_passport);
+		
+	}
+
+}
+
+By making a primary key as a foreign key in child entity, will make One to One relationship
+
+OneToOne with primary key
+--------------------------
+- Without creating foreign key field in child table, it can be maintained OneToOne relationship.
+ 
+@GenericGenerator - to define generator strategy for Id
+@Id
+@GeneratedValue - to assign GenericGenrator
+
+STS - file - new project - "onetoonepk"
+dependencies - Lombok, Oracle Driver, Spring Data Jpa
+
+package com.oto.entity
+@Entity
+public class Person {
+	@Id
+	private Integer personId;
+
+	private String personName;
+}
+
+@Entity
+public class Passport { //Child class - make primary key as foreign key - copy id of the parent entity to child entity.
+
+	@GenericGenerator(name = "g1", strategy = "foreign", parameters= @Parameter(name = "property", value = "person")) 
+	//Foreign is a hibernate gennerator - to use this generator in generic manner use @GenericGenerator. "foreign" strategey copy id from parent property.
+	//In @Parameter(name = "property", value = "person") //person is a parent property
+
+	@Id
+	@GeneratedValue(generator="g1")
+	private Integer passportNo;
+
+	private LocalDate expDate;
+
+	@OneToOne(cascade=CascadeType.ALL)
+	//In this case no JoinColumn required
+	@PrimaryKeyJoinColumn //It tells that primary key is used as a foreign key
+	private Person person;//parent reference in child
+}
+
+@Repository
+public interface PassportRepository extends JpaRepository<Passport, Integer>{}
+@Repository
+public interface PersonRepository extends JpaRepository<Person, Integer>{}
+
+package com.oto.runner;
+@Component
+public class MyRunner implements CommandLineRunner {
+	
+	@Autowired
+	PassportRepository repo;
+
+	@Override
+	public void run(String... args) throws Exception {
+		Person person = new Person();
+		person.setPersonId(101);
+		person.setPersonName("ANIL");
+
+		Passport passport = new Passport();
+		//passport.setPassportNo(11231); // Not required now - person_no will be copied to the passportNo - So it will be 101 as person_id
+		passport.setExpDate(LocalDate.of(2025, 12, 31));
+		passport.setPerson(person); //** Set parent entity reference to the child class.
+
+		repo.save(passport); //passport & person will be saved but id of the both column would be same now.
+ 
+		
+	}
+
+}
+
+Joining - To read data from multiple entities
+--------------------------------------------------
+* To read the data from multiple tables in a single query - Join is used
+For e.g. to fetch data from Customer & Order entities together at once.
+
+A customer has many orders 
+CUSTOMER(custid, custname, ...)
+ORDER(orderid, itemname, orderdate, ...)
+
+We can use JPQL(by using entity properties)/ SQL(by using table feilds) 
+
+Inner Join (Default join) - fetch only matching data
+Left Outer Join - more data from left
+right Outer Join
+full join
+
+
+Inner Join - SQL
+---------------------
+select c.custname, o.itemname, o.orderdate from customer c join order o where c.custid=o.custid_fk;
+
+Inner Join - JPQL
+---------------------
+select c.custname, o.itemname, o.orderdate from Customer c join c.orders o
+
+//parent entity class having collection reference variable of child - here c.orders represents collection reference variable.
+
+In ToMany
+-------------
+select c.customerName, o.itemName, o.orderDate from Customer c join c.orders o; //Inner Join
+
+
+In ManyToOne
+-------------
+select c.customerName, o.itemName, o.orderDate from Order o join o.customer c; //Inner Join
+
+In OneToMany project
+------------------------
+package com.otm.repository
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Integer> {
+	
+	@Query("select c.custName, o.iteName, o.orderDate from Customer c inner join c.order o "); //JPQL | inner join fetches only matching data | it will return List<Object[]>
+	List<Objetc[]> readData();
+
+	or with left outer join
+	@Query("select c.custName, o.iteName, o.orderDate from Customer c left outer join c.order o "); //JPQL | left Outer join fetches more data from left table.
+	List<Objetc[]> readLeftOuterData();
+
+	or with SQL join
+	@Query(value = "", nativeQuery = true)
+	List<Objetc[]> readSQLData();
+	
+}
+
+public class MyRunner implements CommandLineRunner{
+
+	@Autowired
+	private CustomerRepository custRepo;
+
+	public void run(String... args){
+		List<Object[]> objList = custRepo.readData();
+		objList.forEach(obj -> {
+			System.out.println(obj[0]+" , "+obj[1]+" , "+obj[2]); //customerName, itemName, orderDate
+		});
+	}
+}
+
+1+N selects problem in Hibernate/ JPQL
+=========================================
+Suppose there are three customer on Customer table - for each customer multiple orders are there in Order table. 
+
+select all the customers & read all of their orders.
+1) one select statement will be executed to select all three customers.
+2) then for each customers separate select statements will be executed to fetch their associated orders 
+- So total number of select statement will be 1+3
+- It decreases application performance
+
+Solution for 1+N is @Fetch(FetchMode.SUBSELECT) with private Set<Order> orders in Customer Entity class;
+
+select * from customer;
+select * from orders;
+
+for e.g. of 1+N issue in MyRunner.java of oneToMany app
+
+	List<Customer> custList = custRepo.findAll();
+	
+	//It will fetch first list of all customers with 1 query
+	//Then for all customers will fetch associated orders list by n queries.
+
+@Fetch(FetchMode.SUBSELECT) // Two query will be executed(1+1 query)
+@Fetch(FetchMode.JOIN) // Single query will be executed with join query of customer & order(1 query)
+@Fetch(FetchMode.SELECT) // DEFAULT Fetch Mode - 1+N queries
+
+
+In Customer Entity
+@Entity
+public class Customer {
+	---
+	---
+	---
+	@OneToMany(cascade=CasecadeType.All, fetch=FetchType.EAGER)
+	@JoinColumn(name="CUSTID_FK")
+	@Fetch(FetchMode.SUBSELECT) //FetchMode.JOIN uses single query with outer join select all the customer & their associated Orders
+	private Set<Order> orders;
+
+}
+
+
+Bi-directional
+-------------------
+Entities : Customer, Order
+
+In One to Many :
+- Customer has associated orders with 1:M association
+
+- When perform any operation on Customer like save/update/delete then, its associated collection will also be saved/updated/deleted(will be cascaded save/update/delete on associated orders)
+
+
+In Many to One :
+- Order Entity
+
+
+If I want to perform operations on Customer should be performed same on Orders also, If I want to perform operations on Orders should be performed same on Customer also So, For this we need to provide both annotations - OneToMany & ManyToOne on both Entity classes. This situation combindly called OneToMany Bi-directional.
+
+
+Customer {
+	@OneToMany(mappedBy="customer") //mappedBy should be a field in target Entity, which makes this relation as bi-directional.
+	//@OneToMany(casecade= CascadeType.ALL, fetch=FetchType.EAGER, mappedBy="customer")//Can be written like this.
+	Set<Order> orders;
+}
+
+Order {
+	@ManyToOne
+	Customer customer;
+}
+
+If we use mappedBy then @JoinColumn can't be provided. @JoinColumn is provided on ManyToOne association.
+
+@OneToMany(casecade= CascadeType.ALL, fetch=FetchType.EAGER, mappedBy="customer")
+

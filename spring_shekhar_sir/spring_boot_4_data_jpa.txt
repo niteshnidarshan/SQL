@@ -1,0 +1,381 @@
+Spring Boot Data JPA
+==========================
+- There are a various ways to connect spring application with database
+
+	# Spring data access module provides for CRUD operations(Spring's aim to eliminate Dao implementation class):
+		1) spring-jdbc-api 
+		2) spring-orm-api
+
+	Why Spring Data?
+	-------------------
+	- Spring's aim to eliminate Dao implementation class from user point of view. Only need to create a Dao interface.
+	- Only need to declare methods(additional operations if required) in Dao interface.
+	- All the declared methods implementation is provided by spring data at runtime.
+
+	Spring Data Project[Main Project]
+	--------------------------------------
+		# Spring Data Commons [PagingAndSortingRepository + CrudRepository interfaces] [core-project] - Contains common behaviours 
+		- JPA [] [sub-project]
+		- MongoDb [MongoRepository] [sub-project]
+		- Redis [sub-project]
+		- Couchbase [sub-project]
+		- Casandra [sub-project]
+
+	* PagingAndSortingRepository extends CrudRepository
+
+		#CrudRepository
+		- save(entity)
+		- flush() - To sync with database
+		- deleteById(Id)
+		- deleteAll()
+		- findById(Id)
+		- findAll()
+		- existById(Id)
+
+		#PagingAndSortingRepository
+		- findAll(Sort sort)
+		- findAll(Pageable pageable)
+
+	* JPA(Java Persistence API specification from Sun to map java classes with table & JPQL) [JpaRepository interface]
+		- JPQL(Java Persistence Query Language)
+		** JpaRepository extends PagingAndSortingRepository ( -> CrudRepository)
+
+		- By default Spring boot uses Hibernate as a JPA Provider.
+
+
+	- One application may have many Entity; For each Entity should have separate Repository would be there to perform CRUD operations.
+
+
+	For e.g
+	-------------
+	@Entity
+	public class Stock {
+		
+	}
+
+	@Repository
+	public interface StockRepository extends JpaRepository<Stock, Entity_Id_data_type>{}
+	
+	@Entity
+	public class Warehouse{
+		
+	}
+
+	@Repository
+	public interface WarehouseRepository extends JpaRepository<Warehouse, Integer>{}
+
+
+	- Need to create separate Repository for each Entity.
+	
+
+class material link-> [https://groups.google.com/forum/#!forum/test_examples]
+
+ 
+Need to consider for SPRING DATA JPA project
+-----------------------------------------------
+1) Enable JpaRepository [<jpa:repositories>]
+2) configure DataSource bean
+3) configure LocalContainerEntityManagerFactory bean
+4) configure HibernateJpaVendorAdaptor
+5) add multiple dependencies to pom.xml
+
+
+Need to consider for SPRING BOOT DATA JPA project
+---------------------------------------------------
+1) add spring-boot-starter-data-jpa
+2) create Repository interfaces
+
+
+Query creation Approaches
+-----------------------------
+1) Query creation by method name
+2) Query creation using @Query
+3) query creation using @NamedQuery
+
+# Query creation by method name keywords:
+	1) findBy
+	2) getBy
+	3) readBy
+	4) queryBy	
+
+	keyword+DataMember+<Operator>
+
+@Entity
+@Data
+public class Passenger {
+	@Id
+	private Integer passengerId;
+	private String firstName;
+	private String lastName;
+	private String email;
+	private String contactNumber;
+	private Integer seatNumber;
+}
+
+@Repository
+public interface PassangerRepository extends JpaRepository<Passenger, Integer>{
+	//JpaRepository<Entity_class_name, data_type_of_Id_field>
+
+	Passenger findByEmail(String email);
+	
+	List<Passenger> findByFirstName(String firstName);
+
+	List<Passenger> findByEmailOrContactNumber(String email, Long contactNumber);
+
+	List<Passenger> findBySeatBetween(Integer seat1, Integer seat2);
+
+	List<Passenger> findByLastNameOrderByFirstNameAsc(String lastName);
+
+	List<Passenger> findBySeatNumberLt(Integer seatNumber);	
+
+	List<Passenger> findBySeatNumberGreaterThanEqual(Integer seatNumber);
+
+}
+	
+save()
+saveAndFlush() // For both purposes- save or update
+deleteById()
+deleteAll()
+existById()
+findById()
+findAll()
+
+
+Can we use @OneToMany relation in Entity to fetch all data in Spring Boot Data JPA?
+Can we create Join related query by method?
+
+# Query creation using @Query
+---------------------------------
+JPQL(Java Persistence Query Language)/ SQL
+
+select * from emp;// SQL QUERY
+select e from Employee e; // JPQL QUERY - works on Entity classes
+
+select empno, sal from emp;//SQL 
+select e.empNumber, e.salary from Employee e;//JPQL
+
+select * from emp where deptno=?//SQL
+select e from Employee e where e.deptNumber=?1//JPQL [?1...?n where 1 to n is index parameter]
+
+@Repository
+public interface Employee extends JpaRepository<Employee, Integer>{
+	
+	//JPQL - with index parameters(?1)
+	@Query("select e from Employee e where e.deptNumber=?1")
+	List<Employee> getEmpsByDeptno(Integer deptno); //any method name can be used here
+
+	//JPQL - with named parameters(:name) - more readable
+	@Query("select e from Employee e where e.deptNumber=:deptno and e.empSal=:sal")
+	List<Employee> getEmployees(Integer dno, double sal);
+	or
+	List<Employee> getEmployee(@Param("deptno") Integer dno, @Param("sal") Double sal);
+
+
+	//JPQL
+	@Query("select e.empNumber, e.empSal from Employee e") //Partial select query - returns List<Object[]>, array will contain empNum & sal
+	List<Object[]> readEmployees();
+
+
+	//SQL
+	@Query(value="select * from emp where sal>?", nativeQuery=true)//need to pass second argument as "nativeQuery=true" in case of SQL query
+	List<Employee> findEmpBySalary(double sal);
+	
+}
+
+Query creation using @NamedQuery
+------------------------------------
+- Write/define Named Query in Entity class & add the same name in method in multiple repository to execute the query.
+- JPQL query
+
+@Entity
+@NamedQuery(name="Employee.fetchEmpsByDeptno", query="select e from Employee e where e.deptNumber=?1")
+//naming convention for name - Entity_class_name.method_name
+@Table(name="emp")
+public class Employee {
+	---
+	---
+	---
+}
+
+@Repository
+public interface EmployeeRepository extends JpaRepository<Employee, Integer>{
+	List<Employee> fetchEmpsByDeptno(Integer dno);
+}
+
+Multiple named query - JPQL
+------------------------------
+@Entity
+@NamedQueries({
+	@NamedQuery(name="xxx", query="yyy"),
+	@NamedQuery(name="xxxx", query="yyy")
+})
+@Table(name="emp")
+public class Employee {
+	---
+	---
+	---
+}
+
+
+Query creation using @NamedNativeQuery
+----------------------------------------
+- Write/define Named Native Query in Entity class & add the same name in method in multiple repository to execute the query.
+- SQL query
+
+@Entity
+@NamedNativeQuery(name="Employee.fetchEmpsByDeptno", query="select * from emp where deptno=?1")
+//naming convention for name - Entity_class_name.method_name
+@Table(name="emp")
+public class Employee {
+	---
+	---
+	---
+}
+
+@Repository
+public interface EmployeeRepository extends JpaRepository<Employee, Integer>{
+	List<Employee> fetchEmpsByDeptno(Integer dno);
+}
+
+Multiple named native query - SQL Queries
+--------------------------------------------
+@Entity
+@NamedNativeQueries({
+	@NamedNativeQuery(name="nxxx", query="yyy"),
+	@NamedNativeQuery(name="nxxxx", query="yyy")
+})
+@Table(name="emp")
+public class Employee {
+	---
+	---
+	---
+}
+
+e.g.
+=========
+STS -> starter project 
+
+group: com.sathyatech
+artifact : data.jpa1
+
+dependencies : oracle driver, Spring Data JPA[spring-boot-starter-data-jpa], lombok
+
+package com.jpa.entity
+@Entity
+@Data
+//@NamedNativeQuery(name="Passenger.fetchPassangers", query="select * from passenger where first_name like '%k%' ")//SQL 
+@NamedQuery(name="Passenger.fetchPassangers", query="select p from passenger where p.firstName like '%k%' ")//JPQL 
+public class Passenger {
+	@Id
+	private Integer passengerId; //It will map with the column as "passanger_id"[capital letter in middle treats as _(underscore)] Or if it is different then use @Column(name="pid")
+	
+	@Column(length=15)//by default String mapping field in DB creates varchar2(255)
+	private String firstName; //first_name
+
+	@Column(length=15)
+	private String lastName;
+
+	@Column(length=25)
+	private String email;
+
+	private Long contactNumber;
+
+	private Integer seatNo;
+	
+}
+
+package com.jpa.repository
+@Repository
+public interface PassengerRepository extends JpaRepository<Passenger, Integer> {
+	
+	Passenger findByEmail(String email);
+	
+	@Query("select p from Passenger p where p.seatNo>=:from and p.seatNo<=:to")
+	List<Passenger> readPassengerBetween(@Param("from") Integer from, @Param("to") Integer to);// @Param binds method parameter to named parameter of query
+	
+	List<Passenger> fetchPassangers();//from @NamedNativeQuery from Entity class
+}
+
+package com.jpa.runner
+@Component
+public class MyRunner extends CommandLineRunner {
+
+	@Autowired
+	PassengerRepository repo;
+
+	@Override
+	public void run(String... args) throws Exception {
+		
+
+		//Insert record
+		Passenger p = new Passenger();
+		p.setPassengerId(101);
+		p.setFirstName("Ganesh");
+		p.setLastName("Gupta");
+		p.setEmail("ganesh@gmm.com");
+		p.setContactNumber(111111111223L);
+		p.setSeatNo(27);
+
+		repo.save(p);
+
+		
+
+		//Find By Id
+		//Optional object : Its like a container object - to avoid null pointer exception
+
+		Optional<Passenger> opt = repo.findById(101);//return Optional
+		Passenger p = opt.get();//
+	
+		System.out.println("Passenger Id = "+p.getPassengerId());
+		System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
+
+		
+		//Find All
+		List<Passenger> passengerList = repo.findAll();//Returns iterable object
+		
+		passengerList.forEach(p->{
+			System.out.println("Passenger Id = "+p.getPassengerId());
+			System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
+			sysout("-----------");
+		});
+
+		//Custom JPA method query
+		Passenger p = repo.findByEmail("meena@gmail.com");
+			System.out.println("Passenger Id = "+p.getPassengerId());
+			System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
+
+		
+		//Custom method by @NamedQuery
+		List<Passenger> passengerList = repo. fetchPassangers();
+		
+		passengerList.forEach(p->{
+			System.out.println("Passenger Id = "+p.getPassengerId());
+			System.out.println("Passenger Name = "+p.getFirstName()+" "+p.getLastName());
+			sysout("-----------");
+		});	
+		
+	}
+
+}
+
+application.properties
+------------------------
+spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521:xe
+spring.datasource.username=system
+spring.datasource.password=y=tiger
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update ['create' = creates & drop - used for testing purpose | 'update' = does not drop, if table not exist in DB it creates]
+
+
+run app
+
+
+Sorting
+--------------
+Sort sort = Sort.by("firstName").ascending();//By default ascending
+List<Passenger> passengerList = repo.findAll(sort);
+
+Sort sort = Sort.by("firstName").ascending().and(Sort.by("seatNo").descending());
+List<Passenger> passengerList = repo.findAll(sort);

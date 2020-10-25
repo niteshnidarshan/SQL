@@ -1,0 +1,304 @@
+
+Spring email API 
+-------------------
+JavaMailSender interface - JavaMailSenderImpl class - with SMTP server
+- To send email without attachment - SimpleMailMessage class is used
+
+Example[register-login system]
+---------------------------------
+If user not registered, system should show error message in the page & redirects to register by entering email.
+
+index.jsp [http://localhost:8080/crm/index]
+--------------------------------------------
+DispatcherServlet(stops request) 	<-> HandlerMapping
+						<-> RegisterController
+						<-> ViewResolver
+						->  view -> New User? Sign Up -> DS -> RegisterController -> view(register.jsp) -> 	First Name__________
+								 Existing User? Sign in									Last Name___________
+																					email_______________
+																							submit
+
+Submit -> DS -> RegisterController -> EmailService - send success email to user.
+
+Login -> DS -> LoginController -> success.jsp/ error/login.jsp
+
+
+Customer registration application with spring email, validation & data binding
+================================================================================
+project name = crm
+package = com.crm
+dependencies = JDBC API, Spring Web, Validation, Oracle Driver(ojdbc8), Java Mail Sender(spring-boot-starter-mail), org.apache.tomcat.embed(tomcat-embed-jasper) & jstl(jstl) 1.2
+
+src/main/webapp/WEB-INF/views
+
+com.crm.controller
+com.crm.model
+com.crm.service
+com.crm.dao
+com.crm.dao.impl
+com.crm.service
+
+@Repository
+public class RegisterDaoImpl implements IRegisterDao {
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+	
+	public boolean saveCustomer(CustomerBean customerBean){
+		int count = jdbcTemplate.queryForObject("Select count(*) from customer_tab where email=?", Integer.class, customerBean.getEmail());
+		if(count==1){
+			return false;
+		}
+		else{
+			jdbcTemplate.update("insert into customer_tab(email, first_name, last_name) values(?,?,?)", );
+			return true;
+		}
+	}
+	
+}
+
+@Component
+public class RegisterController {
+	@Autowired
+	EmailService emailService;
+
+	@Autowired
+	IRegisterDao registerDao;
+
+	@GetMaipping("/index")
+	public String getIndexPage() {
+		return "index";
+	}
+
+	@GetMapping("/register") 
+	public String getRegisterPage(Model model){
+		CustomerBean customerBean = new CustomerBean();
+		model.addAttribute("custBean", customerBean); //adding customerBean to model for Data Binding with UI
+		return "register";
+	}
+
+	@PostMapping("/save")
+	public String registerCustomer(@Valid @ModelAttribute("custBean") CustomerBean customerBean, BindingResult result, Model model, HttpServletRequest request) {
+		if(result.hasErrors()) {
+			return "register";
+		}
+		else{
+			boolean flag = registerDao.saveCustomer(customerBean);
+			if(flag==false){
+				model.addAttribute("message", "Customer already registerd. try another Id");
+				return "register";
+			}
+			else{
+				//send email to customer for register
+				String name = customerBean.getFirstName()+" "+customerBean.getLastName();
+				emailService.sendEmailToCustomer(customerBean.getEmail(), name);
+				return "registrationSuccess";
+			}
+		}
+	}
+}
+
+@Service
+public class EmailService {
+	@Autowired
+	JavaMailSender mailSender;
+
+	public void sendEmailToCustomer(String mailId, String name){
+		SimpleMailMessage mailMessage = new SimpleMailMessage();
+		mailMessage.setTo(mailId);
+		mailMessage.setSubject("");
+		mailMessage.setText(name+"");
+		mailMessage.send();
+	}
+}
+
+package com.crm.model;
+public class CustomerBean {
+	@NotEmpty
+	private String firstName;
+	
+	@NotEmpty
+	private String lastName;
+	
+	@NotEmpty
+	@Email
+	String email;
+
+	@Pattern(regexp="^[a-z][a-z0-9#@!]*")
+	@Size(min=8, max=15)
+	private String password;
+
+	@Min(21)
+	@Max(35)
+	@NotNull
+	private Integer age;
+
+	@NotNull
+	private Gender gender;
+
+	@NotNull
+	private String country;
+
+	@NotNull
+	@Past
+	@DateTimeFormat(pattern="yyyy-MM-dd")
+	private Date dateOfBirth;
+
+	@NotNull
+	private Long contactNumber;
+
+	private Map<String, String> countries = new HashMap<>();
+	
+	//assign countries in constructor
+	public CustomerBean() {
+		//put some countries values in map.
+	}
+	
+}
+
+public enum Gender {
+	MALE, FEMALE, OTHER
+}
+
+@Controller
+public class LoginController {
+	@Autowired
+	ILoginDao dao;
+	
+	@GetMapping("/login")
+	public String getLoginPage(Model model){
+		model.addAttribute("loginBean", new LoginBean());
+		return "login";
+	}
+	
+	@PostMapping("/userLogin")
+	public String userLogin(@ModelAttribute LoginBean loginBean, Model model) {
+		boolean flag = dao.loginCheck(loginBean.getEmail(), loginBean.getPassword());
+		if(flag==false){
+			model.addAttribute("msg", "Bad Credential");
+			return "login";
+		}
+		else{
+			return "loginSuccess";
+		}
+	}
+}
+
+@Repository
+public class LoginDaoImpl implements ILoginDao {
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+	public boolean loginCheck(String email, String password){
+		
+	}
+}
+
+public class LoginBean {
+	private String email;
+	private String password;
+
+	//Getter-Setter
+}
+
+
+index.jsp
+-----------
+New User? <a href="register">Sign UP</a><br>
+Existing User? <a href="login">Sign In</a>
+
+register.jsp
+---------------
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+
+<c:if test="${message ne null}">
+	<c:out value="${message}"/>
+</c:if>
+
+
+<form:form action="save" method="post" modelAttribute="custBean"> //save is a url
+<table>
+	<tr>
+		<td>FirtName</td>
+		<td><form:input path="firstName"/></td>
+		<td style="color:red"><form:errors path="firstName"/></td>
+	</tr>
+	
+	---
+	---
+	---
+	<tr>
+		<td>DOB</td>
+		<td><form:input type="date" path="dateOfBirth"/></td>
+		<td style="color:red"><form:errors path="dateOfBirth"/></td>
+	</tr>
+
+	<tr>
+		<td>Country</td>
+		<td>
+			<form:select path="country"/> 
+				<form:option value="">--select country--</form:option>
+				<form:options items="${cutBean.countries}"/> //for data loop
+			</form:select>
+		</td>
+	</tr>
+</table>
+</form:form>
+
+registrationSuccess.jsp
+----------------------------
+You have registered successfully! Now go to index page.
+<a href="index">Home</a>
+
+login.jsp
+---------------
+<c:if test=${}>
+<form:form action="userLogin" method="post" modelAttribute="loginBean">
+	<table>
+		Email
+		Password
+		Submit
+	</table>
+</form:form>
+
+messages.properties
+-------------------------------
+#error messages
+
+NotEmpty.custBean.firstName=First Name is required
+
+NotEmpty.custBean.lastName=Last Name is required
+
+NotEmpty.custBean.email=Email is required
+Email.custBean.email=Invalid email
+
+Min.custBean.age=Age must be >= 21
+Max.custBean.age=Age must be <= 25
+
+
+application.properties
+--------------------------
+server.port=2221
+server.servlet.context-path=/CRM
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.suffix=.jsp
+
+#DataSource properties
+spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.datasource.url=jdbc:oracle:thin:@localhost:1521:xe
+spring.datasource.username=xxx
+spring.datasource.password=xxx
+
+#Email SMTP properties
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=
+spring.mail.password=
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com
+
+#go to email settings, privacy & enable less secure app access
+
+
+

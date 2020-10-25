@@ -1,0 +1,439 @@
+
+Spring-JDBC [spring-boot-starter-jdbc & DB Driver dependencies]
+=================================================================== 
+	- Checked exception
+	- No boiler plate code
+	- Provides an abstraction layer over JDBC - JdbcTemplate class
+		- JdbcTemplate class depends on DataSource[interface].
+			DataSource[interface] implementation :
+				- DriverManagerDataSource class
+				- HikariDataSource class
+
+ 
+	
+spring-jdbc project
+------------------------
+	pom.xml
+	--------------------------
+	- spring-boot-starter-jdbc(JDBC API) & Oracle Driver(ojdbc8) dependencies
+	
+	application.properties
+	--------------------------
+	spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+	spring.datasource.url=jdbc:oracle:thin:@localhost:1521:xs
+	spring.datasource.username=system
+	spring.datasource.password=tiger
+
+	package com.demo.dao;
+	public interface EmpDaoIntf {
+		void updateEmp(double salary, int deptno);
+		Map findEmpById(int empno);
+		List<Map<String, Object>> findAll();
+	}
+
+	package com.demo.dao.impl;
+	@Repository
+	public class EmpDaoImpl implements EmpDaoIntf {
+
+		@Autowired 
+		JdbcTemplate jdbcTemplate;
+
+		@Override
+		void updateEmp(double salary, int deptno){
+			jdbcTemplate.update("UPDATE EMP SET SAL=? WHERE DEPTNO=?", salary, deptno);
+		}
+
+		@Override
+		Map findEmpById(int empno) {
+			return jdbcTemplate.queryForMap("SELECT * FROM EMP WHERE EMPNO=?",empno); //Single record selection
+		}
+
+		@Override
+		List<Map<String, Object>> findAll() {
+			return jdbcTemplate.queryForList("SELECT * FROM EMP"); //Multi row records
+		}
+	}
+
+	package com.demo.runner;
+	@Component		
+	public class MyRunner implements CommandLineRunner {
+		@Autowired
+		EmpDaoIntf intf;
+
+		@Override
+		public void run(String... args) throws Exception {
+			intf.updateEmp(5999.0, 20);
+			
+			sysout(intf.findEmpById(7788));
+
+			List<Map<String, Object>> list = intf.findAll();
+			list.forEach(System.out::println); 
+		}
+	}
+	
+	run app 
+
+Spring Boot MVC
+==================
+- Web applications can be created using Servlet & JSP technologies which provides tightly coupled solution.
+- Model(data/business), view(presentation), controller(navigates between model & view).
+- Front Controller (DispatcherServlet) - Controls each & every request
+
+- In java MVC & MVC2 architectures are there.
+	- In MVC(No Helper class), front controller contacts with appropriate Model directly then controller decides appropriate view.
+	- In MVC2(Use Helper class), front controller servlet use Helper classes to identify Model & View classes. 
+	- Spring MVC follows MVC2 architecture where need to configure servlet_name-servlet.xml and also need to add DispatcherServlet to web.xml 
+		WEB-INF/ web.xml & <servlet_name-servlet.xml> files
+		web.xml
+		--------------
+		<web-app>
+			<servlet>
+				<servlet-name>spring</servlet-name>
+				<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+				<load-on-startup>1</load-on-startup> //for early load of servlet.
+			</servlet>
+			<servlet-mapping>
+				<servlet-name>spring</servlet-name>
+				<url-pattern>/</url-pattern>
+			</servlet-mapping>
+		</web-app>
+	- Spring boot MVC - No need to configure web.xml or view response 
+
+	spring MVC
+	-----------
+		Controller
+		---------------
+		@Controller - class level annotaion
+		@RequestMapping/ @GetMapping/ @PutMapping/ @PostMapping/ @DeleteMapping - Method level annotations 
+	
+
+		@Controller
+		public class UserController { //Controller Bean class
+
+			//Old style
+			@RequestMapping(value="/getUsers", method = RequestMethod.GET)
+			public ModelAndView findUsers() {
+				---
+				---
+			}
+
+			//New Style
+			@GetMapping("/getUsers")
+			public ModelAndView findUsers() {// findUsers() is called Handler Method
+				---
+				---
+
+				return new ModelAndView("view_name", "model_name", model_value); //String, String, Object -- will return view_name.jsp
+				//InternalResourceViewResolver - to resolve a view name to actual view by adding a prefix & suffix - which needs to configure.
+ 
+			}
+
+		}
+ 
+
+		1) DispatcherServlet calls HandllerMapping[RequestMappingHandlerMapping] bean to identify appropriate Controler
+		2) HandllerMapping[RequestMappingHandlerMapping] bean returns appropriate Controller which associates the request to DispatcherServlet.
+		3) Then DispatcherServlet calls that Controller bean.
+
+
+
+	@Controller
+	public class EmployeeController {
+		@GetMapping("/index")
+		public ModelAndView getIndexPage() {
+			return new ModelAndView("index");
+		}
+	}
+	
+	@GetMapping("/employee/deptno") 
+	public ModelAndView getEmployeesByDeptno(int deptno) {
+		List<Employee> wmpList = service.findEmpsByDno(deptno);
+		return new ModelAndView("show", "employee", empList);
+	}
+
+
+	- In SpringBoot by default InternalResourceViewResolver class is associated for View Resolver bean. It maps the view name to actual view.
+	- InternalResourceViewResolver maps actual view by appending prefix & suffix.
+		prefix = "/WEB-INF/views/"
+		suffix = ".jsp"
+
+		So, "/WEB-INF/views/show.jsp" will be the response for the DispatcherServelt, then DispatcherServelt renders show.jsp & responds.
+	
+		/WEB-INF/views/*.jsp
+
+	- In SpringBoot prefix & suffix to be set in application.properties
+
+	- Web applications are created to share resources. these resources may be a page/data/functionality.
+
+
+	Current development scenario - No need to return ModelAndView object, just need to set model data to ModelMap & return view name 
+	----------------------------------------------------------------------------------------------------------------------------------
+	@GetMapping("/employees")
+	public String getEmployees(ModelMap model) { //ModelMap is a type of Map only, instead of ModelMap it can be used Model/ Map**
+		List<Employee> employeesList = service.findEmployees();
+		model.addAttribute("employees", employeesList); //Model is set to ModelMap
+		return "show"; //Returns only view name
+	}
+	
+	**ModelMap extends LinkedHashMap implements Model [Model is from spring]
+
+	Simple Spring MVC(No Spring boot) application development requires :
+	------------------------------------------------------------------------
+	1) MVC related dependencies to pom.xml
+	2) add DispatcherServlet configuration to web.xml
+	3) define spring configuration in dispatcher-servlet.xml
+	4) deploy war on a server
+
+
+	Spring boot MVC application development requires :
+	-------------------------------------------------------
+	1) add spring-boot-starter-web in pom.xml
+	2) add server/ prefix/ suffix properties in application.properties
+	3) run application
+
+	Create application - starts.spring.io
+	-------------------------------------------
+	dependencies - 
+	----------------
+	1) spring-boot-starter-web
+	2) //If jsp is a view
+		<groupId>org.apache.tomcat.embed</groupId>
+		<artifactId>tomcat-embed-jasper</artifactId>
+
+	application.properties
+	----------------------------
+	server.port=2223
+	server.servlet.context-path=/mvc
+	spring.mvc.view.prefix=/WEB-INF/views/
+	spring.mvc.view.suffix=.jsp
+
+	
+	package com.mvc.controller;
+	@Controller
+	public class HelloController {
+		@GetMapping("/hello")
+		public String returnWelcomePage() {
+			return "welcome";
+		}
+	}
+
+	create a jsp file in this directory :
+	/src/main/webapp/WEB-INF/views/welcome.jsp
+			
+	welcome.jsp
+	---------------
+	<h1>Jai Ram G ki</h1>
+
+	
+	run & request as http://localhost:2223/mvc/hello
+
+
+pom.xml
+--------------
+<dependency>
+	<groupId>jstl</groupId>
+	<artifactId>jstl</artifactId>
+</dependency>
+
+application.properties
+---------------------------
+server.servlet.context-path=/Train
+spring.mvc.view.prefix=/WEB-INF/views
+spring.mvc.view.suffix=.jsp
+
+
+@Repository
+public class TrainDaoImpl implements TrainDaoIntf {
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+	
+	public Train findTrain(Integer trainno) {
+		Map map = jdbcTemplate.queryForMap("select * from train_details where train_no = ?", trainno);
+		
+		Train train = new Train();
+		BigDecimal bd = (BigDecimal)map.get("train_no");
+		Integer trno = bd.intValue();
+		train.setTrainno(trno);
+		train.setSource(map.get("source").toString());
+		train.setDestination(map.get("destination").toString());
+
+		//Here RowMapper can be used to map object with POJO automatically.
+	}
+}
+
+@Controller
+public class TrainController {
+	@Autowired
+	TrainDaoIntf intf;
+
+	@GetMapping("")
+	public String {
+		return "search";
+	}
+
+	@GetMapping("")
+	public String searchTrainByNo(@RequestParam Integer trainno, Model model){
+		Train train = intf.findTrain(trainno);
+		model.addAttribute("train", train);
+		retrun "result";
+	}
+	
+	
+}
+
+result.jsp
+--------------
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%> //EL - expression language/ jstl tag
+<table>
+	<tr>
+		<th>Train#</th>
+		<th>Source</th>
+		<th>Destinaion</th>
+		<th>Dept time</th>
+		<th>Arr time</th>
+	</tr>
+	<tr>
+		<td><c:out value="${train.trainno}"/></td>
+		<td><c:out value="${train.source}"/></td>
+		<td><c:out value="${train.destination}"/></td>
+		<td><c:out value="${train.depttime}"/></td>
+		<td><c:out value="${train.arrtime}"/></td>
+	</tr>
+
+</table>
+
+
+Data Binding
+=================
+- By binding a UI form with application object, we achieve data binding.
+- With JSP it can be achieved by adding the tag library as 
+- WebDataBinder - DispatcherServlet calls WebDataBinder to bind UI controls to bean.
+
+	<%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+
+	<form:form action="xxx" modelAttribute="userData">//form tag - first form is prefix & second one is tag name
+											    //add javaBeanObject(userData) with a name in ModelMap of spring
+
+	@Controller
+	public class UserController {
+
+		@GetMapping("/userForm")
+		public String getUserFormPage(Model model) {
+			UserBean userBean = UserBean();
+			model.addAttribute("userData", userBean);
+			return "user";
+		}
+	}
+
+On click of Submit button in UI, associated url is handled by the handler method to read the data,
+which uses @ModelAttribute to bind method parameter to the model attribute.
+
+Submit form -> @Controller -> 
+
+@Controller
+public class UserController {
+	@GetMapping("/xxx")
+	public String getUserPage() {
+		//code
+	}
+
+	@PostMapping("/addUser")
+	public String addUserDetails (@ModelAttribute UserBean userBean) {
+		//code
+	}
+} 
+
+	
+Data Validation
+===================
+- Javascript validation is done on client side which is not much secure, for this need to validate data on server side.
+- To validate data at server side, spring framework has not given any annotations.
+- Sun has provided Bean Validation API(in interfaces) to validate data on java bean class with annotation.
+- Hibernate has provided its implementation as Hibernate validator API.
+- For this need to use dependency - spring-boot-starter-validation.
+- WebDataBinder - DispatcherServlet calls WebDataBinder to bind UI controls to bean.
+
+@AssertTrue
+private boolean isActive; //Field value must be true
+
+@AssertFalse
+private boolean isDeleted; //Field value must be false
+
+@NotEmpty //Can be applied only in String field
+String userName; //userName should not be empty. else validation error.
+
+@Size(min=5, max=10) //Can be applied only in String field
+String password; 
+
+@NotNull 
+Date dob;
+
+@NotNull //can be applied on objects, enum etc.
+Gender gender;
+
+@NotEmpty
+@Email
+String email;
+
+@Min(18)
+@Max(21)
+Integer age; //@Min, @Max can be used with Integer, int, short, long.
+
+@DecimalMin(15.15)
+@DecimalMax(25.25)
+Double price; // For decimal(float/ double)
+
+@Past
+@Future
+Date field; // With date fields
+
+@Pattern(regex="")
+String code; // Can be applied on String field only
+
+^ = used to match beginning of the value.
+^[A-Z]
+
+$ = used to match end of the value.
+[0-9]$
+
+* = 0 or multiple characters.
+[a-z]*
+
++ = 1 or multiple characters.
+
+[a-z]{10} = should be 10 lower case letters.
+[a-z]{5,8} = minimum 5 & maximum 8 lower chars.
+
+@Pattern(regex="^[A-Z][a-z]*")
+String userName; //first char would be capital & rest of the char should small.
+
+Handling error message
+--------------------------
+- should be defined in "messages.properties" file(file name must be messages.properties) & put this file in resources directory with application.properties.
+- must be followed below convention for mesage :
+	constraint.commandname.field=error message
+
+	for e.g.
+	---------------
+	NotEmpty.userBean.userName=Username is required. //userBean is ModelAttribute name.
+
+	in jsp
+	---------------
+	<form:errors/> //This tag is used to show the error message at a time or nearby each & every fields.
+
+
+- BindingResult object stores all the validation errors.
+	@PostMapping("/xxx")
+	public String doRegister(@Valid @ModelAttribute UserBean userBean, BindingResult result){
+		//@ModelAttribute binds method parameter to ModelAttribute
+		//@Valid is indicating that the parameter bean is validated
+		//This handler method requires BindingResult object to store all the error messages while validate.
+		if(result.hasError()){
+			return "registration";//Returning same page, error messages will be appended by BindingResult.
+		}
+		else
+		{
+			//code
+		}
+	}
+

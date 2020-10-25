@@ -2320,8 +2320,72 @@ select all the customers & read all of their orders.
 - So total number of select statement will be 1+3
 - It decreases application performance
 
+Solution for 1+N is @Fetch(FetchMode.SUBSELECT) with private Set<Order> orders in Customer Entity class;
+
+select * from customer;
+select * from orders;
+
+for e.g. of 1+N issue in MyRunner.java of oneToMany app
+
+	List<Customer> custList = custRepo.findAll();
+	
+	//It will fetch first list of all customers with 1 query
+	//Then for all customers will fetch associated orders list by n queries.
+
+@Fetch(FetchMode.SUBSELECT) // Two query will be executed(1+1 query)
+@Fetch(FetchMode.JOIN) // Single query will be executed with join query of customer & order(1 query)
+@Fetch(FetchMode.SELECT) // DEFAULT Fetch Mode - 1+N queries
 
 
+In Customer Entity
+@Entity
+public class Customer {
+	---
+	---
+	---
+	@OneToMany(cascade=CasecadeType.All, fetch=FetchType.EAGER)
+	@JoinColumn(name="CUSTID_FK")
+	@Fetch(FetchMode.SUBSELECT) //FetchMode.JOIN uses single query with outer join select all the customer & their associated Orders
+	private Set<Order> orders;
+
+}
+
+
+Bi-directional
+-------------------
+Entities : Customer, Order
+
+In One to Many :
+- Customer has associated orders with 1:M association
+
+- When perform any operation on Customer like save/update/delete then, its associated collection will also be saved/updated/deleted(will be cascaded save/update/delete on associated orders)
+
+
+In Many to One :
+- Order Entity
+
+
+If I want to perform operations on Customer should be performed same on Orders also, If I want to perform operations on Orders should be performed same on Customer also So, For this we need to provide both annotations - OneToMany & ManyToOne on both Entity classes. This situation combindly called OneToMany Bi-directional.
+
+
+Customer {
+	@OneToMany(mappedBy="customer") //mappedBy should be a field in target Entity, which makes this relation as bi-directional.
+	//@OneToMany(casecade= CascadeType.ALL, fetch=FetchType.EAGER, mappedBy="customer")//Can be written like this.
+	Set<Order> orders;
+}
+
+Order {
+	@ManyToOne
+	Customer customer;
+}
+
+If we use mappedBy then @JoinColumn can't be provided. @JoinColumn is provided on ManyToOne association.
+
+@OneToMany(casecade= CascadeType.ALL, fetch=FetchType.EAGER, mappedBy="customer")
+
+
+Procedure/ Function in Spring Data Jpa
+===========================================
 
 
 

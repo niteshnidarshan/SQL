@@ -1,0 +1,527 @@
+class material link-> [https://groups.google.com/forum/#!forum/test_examples]
+
+Spring Boot is a new model to develop spring applications.
+
+Features
+-----------
+1) Flexibility over configuration - Annotation, java config classes or zero configurations.
+
+2) Starters dependency - (Combination of required jars)
+	- A group of related dependencies with appropriate versions.
+
+3) Embedded server - (Tomcat, Jetty etc.)
+
+4) Profiles (To make application compatible for different environments - just need to activate the related profile at the time of development)
+
+5) Actuators - Inside details of application during runtime like heap size, memory information, server status etc.
+
+
+SpringBoot Core/ AOP
+SpringBoot MVC
+SpringBoot Data JPA
+SpringBoot Data MongoDB
+SpringBoot Security
+SpringBoot Restful Web services
+SpringBoot Data Redis
+SpringBoot Security Oath2
+SpringBoot Profiles
+SpringBoot Actuator
+SpringBoot Batch
+SpringBoot Kafka
+
+Monolithic application - Single jar/ war for whole application
+------------------------------------------------------------------
+- It has the following drawbacks
+
+	1) Large App 
+		- Increase development time, may cause downtime during deployment even though changes are very small.
+		- Large deployment & startup time
+	2) Scaling
+		- Difficult to handle when large traffic for a single module, entire application goes down.
+
+	3) One Technology Stack -Entire development is done only with one technology, Other language/ technology support not available.
+
+Solution of Monolithic approach is - Micro-services.
+
+Micro-services
+------------------
+- Split of large system into smalls.
+- Independent responsibility for each micro services.
+- Scaling [If one micro-service is having downtime/ load - only that particular micro-service can be scaled up without interrupting others.]
+- Multi language development possible (Interoperability). 
+
+
+pom.xml
+===============
+1) Add <parent> tag - above dependency tag
+	
+	<parent> 
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.3.1.RELEASE</version>
+	</parent>
+
+2) Add dependencies
+	
+	<dependency>	
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter</artifactId>
+
+		/* Here version is automatically inherited from parent, so no need to provide */ 
+
+	</dependency>
+
+3) Add plugin
+
+	- Spring boot provided plugins to maven to build, run, test & package for war/jar with goal etc...
+
+	<plugin>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-maven-plugin</artifactId> /* To build & execute spring boot app */
+	</plugin>
+
+
+- In order to migrate existing application, add these three tags in pom.xml
+- To create new spring boot project, needs spring initializer tool which adds all the stuffs in pom.xml like start.spring.io
+- Every spring boot application have entry point class with main method and application executes from this main method only.
+- The entry point class must have annotated with @SpringBootApplication. 
+- @SpringBootApplication consist of three annotations :
+	[@Configuration / @SpringBootConfiguration + @ComponentScan + @EnableSpringBootConfiguration].
+
+
+@SpringBootApplication
+---------------------------------
+	- class level annotation
+	- entry point of spring boot application
+	- combination of :
+		- @SpringBootConfiguration (or SpringConfiguration - both are same)
+		- @EnableAutoConfiguration (Automatically configures jars which are available in class path)
+		- @ComponentScan
+	- The class annotated with @SpringBootApplication, acts also as a configuration class and the class can contain bean configurations methods.
+	- Spring boot application runs as a SpringApplication.
+
+spring-boot-configuration module - contains auto configuration classes
+	for e.g. 
+	-----------
+	spring-boot-starter-web - spring-boot-configuration module configures all the jars associated this starter dependency automatically.
+
+
+@SpringBootApplication
+public class DemoApp {
+	public static void main(String args[]){
+		
+		SpringApplication.run(DemoApp.class, args);
+		
+		// BOOTSTRAPPING
+		//-------------------
+		//run is a static method and does the following internally :
+		//1) creates ApplicationContext (A type of container which manages entire beans) - loads all the beans of the application to the 						ApplicationContext with the help of DemoApp.class.
+		//2) registers CommandLinePropertySource bean (This class Converts command line arguments to spring application properties)
+		//3) refreshes ApplicationContext with singleton beans
+		//4) triggers CommandLineRunner bean classes
+
+		//- Just before ready to run spring boot application, CommandLineRunner executes(If you want to execute any logic one time just before spring boot application is going to start. for e.g. - like load all the job schedules from database or to insert users with encrypted password for admin users to database.)
+		- CommandLineRunner is an interface provides a method run().
+		- We can define multiple CommandLineRunner by implementing in our classes, but needs provide order of execution else will run randomly.
+
+		// These all four steps are called bootstrapping(initialising the application).
+		
+	}
+}
+
+CommandLineRunner implementation (by custom)
+---------------------------------------------
+@Component 
+@Order(2) // Defines execution order for the class - low the number higher the priority
+public class LoadSchedulesRunner implements CommandLineRunner {
+	@Override
+	public void run(String... args) {
+		//logic
+	}
+}
+
+@Component 
+@Order(1)
+public class DataRunner implements CommandLineRunner {
+	@Override
+	public void run(String... args) {
+		//logic
+	}
+}
+
+$mvn spring-boot:run //Maven uses Spring boot maven plugin to compile & run
+
+$java -jar filename.jar
+
+Deploy Docker image in cloud
+
+CommandLinePropertySource
+----------------------------
+ - If any value passed by command line argument, it reads those & add to the 'Environment Object' of the application.
+ 
+ - It is similar to write properties in application.properties/ application.yml
+
+  
+ 
+
+9505360660 - mohd. Basith. - Sathya Tech - 5000 - google pay
+send screenshot of payment to 9100920092 whatsapp.
+
+paid
+
+-----------------------------------------------------------------
+
+
+Spring Boot - Summary
+-----------------------
+# Why boot?
+	- Zero/Less configuration
+		* Earlier Spring has provided flexibility to define configurations in multiple ways like xml, annotations, java configuration classes.
+	- Starter dependency
+		* Boot provided combination of compatible dependency in a single starter dependency
+	- Embeded server
+		* Earlier had to deploy jar/war to server manually.
+	- When application moves on from one environment to another then you had to change application properties manually.   
+	
+- Spring Boot is a new model to create spring applications, but it is not a new framework
+
+- Features
+	* Zero or Minimal configurations
+	* Starter Dependencies
+	* Embedded servers
+	* Opinionated view - Default configuration with customisations 
+	* profiles
+	* actuators - Production ready features
+
+- Requirements for Spring Boot		
+	1) Java 8+
+	2) Maven/ Gradle
+
+- Changes to pom.xml
+	1) Add parent tag
+	2) Add starter dependencies
+	3) add plugin
+	
+- If you want to migrate a spring application to spring boot application, you need to add the changes to pom.xml manually.
+
+- A new spring boot applications are generated through spring initialiser tool, which automatically adds the required changes in pom.xml.
+
+
+@SpringBootApplication
+-------------------------
+* Every spring boot application executes from java main(). 
+* To make a class as an entry point for spring boot project, add @SpringBootApplication on class 
+* @SpringBootApplication = @SpringBootConfiguration + @EnableAutoConfiguration + @ComponentScan
+* Every spring boot application class is a configuration class, in which you can define bean methods to customize the configurations.
+* In spring boot, we have auto configure module with a group of auto configuration classes which automatically adds the required bean configurations based on the jars available on classpath.
+
+com.pack // base package - contains main method - does auto configure from its package.  
+com.pack.service
+com.pack.controller
+com.pack.entity
+com.pack.model
+com.pack.dao
+com.pack.utilities
+
+* Bydefault, components auto scan starts from spring boot application's base package to its sub packages.
+It can be customized with scanBasePackages element.
+(If configuration available in package other than base package path) 
+
+@SpringBootApplication(scanBasePackages={"package1", "package2", ...})
+
+SpringApplication.run()
+----------------------------
+* Spring boot has provided SpringApplication class, to run a spring boot application as a spring based application from java main method.
+* The run() has two parameters : 
+	1) Spring Boot Application class Class object
+	2) command-line arguments
+
+for e.g.
+----------
+@SpringBootApplication
+public class DemoApplication {
+	psvm(String args[]) {
+		SpringApplication.run(DemoApplication.class, args);
+	}
+}
+
+Stereo type annotations - defines role of the class
+----------------------------------------------------------
+@Component - spring bean class
+@Service
+@Controller
+@RestController
+@Repository 
+@Configuration - java configuration class
+
+CommandLineRunner
+---------------------
+- Triggers just before running spring boot application.
+- Multiple CommandLineRunner can be defined with run order.
+
+STS(Spring Tools Suite) IDE - File - new Spring Starter Project 
+Name - Demo1 | Type - Maven | Packaging - jar | Java Version - 8
+Group(Organisation) - com.sathyatech
+Artifact(Project Name) - Demo1
+Version 1.1
+package(Base package) - com.demo
+
+Next - Spring Boot Version - 2.3.3 | Dependencies - ...if any like web, lombok etc. (If not add any dependency, it will be added Spring-Boot-Starter dependency only).
+
+pom.xml - plugin(spring-boot-maven-plugib) - spring provided this plugin to build & run spring boot application.
+
+Demo1Application.java - this class is created automatically according to the Project name.
+
+@SpringBootApplication
+public class Demo1Application {
+	psvm(String args[]) {
+		SpringApplication.run(Demo1Application.class, args);
+	}
+}
+
+package com.demo.bean;
+@Component
+public class HelloWorldBean {
+	public String sayHello() {
+		return "Hello World";
+	}
+}
+
+package com.demo.runner;
+@Component
+public class MyRunner implements CommandLineRunner{
+	@Autowired //Object/collection dependencies - if bean is conflicting then use @Qualifier
+	HelloWorldBean helloWorld;
+
+	@Override
+	public void run(String... args) throws Exception{
+		System.out.println(helloWorld.sayHello());
+	}
+}
+
+Go to main() class & run as java application.
+or
+manven - maven build ... - command = build
+project - target - Demo1-1.1.jar
+$ [go to project path]
+$ java -jar target/Demo1-1.1.jar
+or 
+$ mvn spring-boot:run
+
+If mvn is showing error like - not a command
+- download maven, extract & set maven on environmental path
+- apache-maven-3.5.2\bin : add this to path variable.
+ 
+$ mvn --version
+$ mvn clean package [clean - to clean previous build, package - packaging jar]
+$ mvn spring-boot:run - to run boot project inside the project directory
+
+Application properties is set by either of :
+1) application.properties
+2) application.yaml
+3) command line argument
+4) CommandLineRunner class
+
+command line argument has two types
+1) Optional arguments [contains key=value, starts with '--']
+	for e.g.
+	---------
+	$ java -jar target/filename.jar --key=value
+
+2) Non-optional arguments [contains only value]
+
+	for e.g. 
+	------------
+	$ java -jar target/filename.jar --key=value --key=value nonoptional1 nonoption2
+
+
+ApplicationRunner interface
+--------------------------------
+- like CommandLineRunner interface & it has also a run() but it takes ApplicationArguments
+
+- run(ApplicationArguments args)
+
+- ApplicationArguments separates Optional & non-optional command line arguments.
+
+- If you want to set properties at the time of runtime then go for ApplicationRunner.
+
+with @Values can be injected values to the bean - It is called value injection.
+
+
+@Component
+public class HelloWorldBean {
+	//@Value("Hello World")
+	@Value(${msg.key})
+	String message;
+
+	public String sayHello() {
+		return message;
+	}
+}
+
+application.properties
+--------------------------
+msg.key=Hello World!
+
+
+- If we provide value at runtime with argument, it will override application properties value.
+$ java -jar target/Demo-1.1.jar --msg.key="It's a boot application" [This message will be shown].
+
+So, command line argument has high priority.
+
+If properties file name is not "application.properties" then use @PropertySource(classpath:myfile.properties) in @SpringBootApplication class
+
+create a spring core app : 
+-----------------------------
+package com.demo
+@SpringBootApplication
+public class Demo2Application {
+	psvm(String args[]) {
+		SpringApplication.run(Demo2Application.class, args);
+	}
+}
+
+package com.demo.runner;
+@Component
+public class MyApplicationRunner implements ApplicationRunner {
+	@Override
+	public void run(ApplicationArguments args) throw Exception {
+		//ApplicationArguments has separate methods for option & nonoption arguments 
+
+		//To print all Non-option args
+		List<String> nonOptionArgsList = args.getNonOptionArgs();
+		sysout("Non-option args from command line : ");
+		nonOptionArgsList.forEach(System.out::println);
+
+		sysout("=====================");
+
+		//To print all option args
+		//One key can have multiple values.
+		Set<String> optionArgsNames = args.getOptionNames();
+		optionArgsNames.forEach((name)-> {
+			List<String> optionArgValues = args.getOptionValues(name);
+			System.out.print(name + " : "); //name
+			optionArgValues.forEach(System.out::print+" "); //associated values
+		}); 
+	}
+}
+
+$ mvn spring-boot:run -Dspring-boot.run.arguments="--id=101 --name=Stahya,Shekher Amirpet Hyderabad"
+or
+$ java -jar target/Demo2-1.1.jar --id=101 --name=Stahya,Shekher Amirpet Hyderabad
+
+$ java -jar target/Demo2-1.1.jar --id=101 --name=Stahya,Shekher Amirpet Hyderabad --id=10001
+
+Note : id=10001 does not override id=101. It will keep both with coma sepearted
+
+
+To Autowire Option & Non-Option args in a class
+----------------------------------------------------
+
+@Component
+public class Warehouse {
+	List<String> warehouseTypes;
+
+	@Autowired
+	ApplicationArguments args;
+
+	public void addWarehouseTypes(){
+		List<String> list = args.getNonOptionArgs();
+		list.forEach(value->warehouse.add(value));
+	}
+}
+
+Command Line Arguments
+------------------------------
+CommandLineRunner - run(String... args)
+ApplicationRunner - run(ApplicationArguments args)
+
+Command line arguments
+1) option args [--key=value]
+2) non-option args [value]
+
+- application.properties - define arguments here at development time.
+
+- Command Line Arguments override application.properties values.
+
+For e.g with DI
+------------------------
+package com.demo.bean;
+@Component
+public class PolicyBean{
+
+	@Value("${policy.company}")
+	String policyCompany;
+	
+	List<String> policyTypes = new ArrayList<String>();
+
+	@Autowired
+	ApplicationArguments args;
+
+	public void showDetails() {
+		List<String> nonOptionArgs = args.getNonOptionArgs();
+		nonOptionArgs.forEach((name)->{
+			policyTypes.add(name);
+		});
+		
+		sysout("Policy company: "+policyCompany);
+		sysout("Policy Type: ");
+		policyTypes.forEach(System.out::println);
+	}
+	
+}
+
+package com.demo.runner;
+
+@Component
+public class MyRunner implements CommandLineRunner {
+	@Autowired
+	PolicyBean policyBean;
+
+	@Override
+	public void run(String... args) throws Exception {
+		policyBean.showDetails();
+	}
+}
+
+application.pproperties
+------------------------
+policy.company=LIC
+
+- package it 
+
+$ java -jar target/Demo3-1.1.jar --policy.company="LIC Of India" "Endowment Plan" "Term Insurance Plan" "Money Back Plan"
+
+- We can make the main class of spring boot app also a CommandLineRunner like this - because @SpringBootApplication is also a @Component : 
+@SpringBootApplication 
+public class Demo3Application implements CommandLineRunner {
+	@Autowired
+	PolicyBean policyBean;
+
+	public static void main(String args[]){
+		SpringApplication.run(Demo3Application.class, args);
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		policyBean.showDetails();
+	}
+}
+
+
+CommandLineRunner
+---------------------
+	- Implement this interface into a class to define a code to run before a spring boot application's bootstrapping is going to finish.
+	- Just before a spring boot application becomes ready to use by the users, the command line runner beans of application will be executed.
+	- You can define multiple CommandLineRunner and define the order of their executions with @Order.
+
+ApplicationRunner
+-------------------
+	- It is also like CommandLineRunner only, but it provides a run() with ApplicationArguments parameters to access option and non-option arguments separately.
+	- An option argument has a key-value. [--key=value]
+	- An option argument has a value only. [without --]
+
+	$ java -jar target/appname.jar --key=value --server.port=2020 --db.user=system IamNonOption1 "I am Non Option2"
+	
+	$ mvn spring-boot:run -Dspring-boot.run.arguments="--key=value --server.port=2020 --db.user=system IamNonOption1 'I am Non Option2'"
+
