@@ -2386,12 +2386,101 @@ If we use mappedBy then @JoinColumn can't be provided. @JoinColumn is provided o
 
 Procedure/ Function in Spring Data Jpa
 ===========================================
+A procedure may have n input & output parameters.
 
+create procedure - calculatebonus in Oracle DB
+input : empno
+output: empname & bonus
 
+create or replace procedure calculatebonus(eno in number, name out varchar2, bonus number out)--parameter_name parameter_mode parameter_data_type
+is
+	p number(9,2); 
+begin
+	select ename into name from emp where empno=eno;
+	select sal into p from emp where empno=eno;
 
+	if p<=5000 then
+		bonus:= p*0.10;
+	else
+		bonus:=p*0.20;
+	end if;
+end;
+/
 
+save it as test1
 
+compile test1
+SQL> @test1
+procedure created.
+
+Procedure with Spring Data Jpa : 
+------------------------------------
+- If you want to call Stored procedure, need to use @NamedStoredProcedureQueries in Entity class
+Spring Tool Suits - File - new - Spring starter project 
+name - procedure
+package - com.example
+groupId - com.sathya
+artifactId - procedure
+dependencies - Spring Data JPA, Oracle Drive, Lombok
+
+package com.example.entity
+@Entity
+@Data
+@NoArgsConstructor
+@NamedStoredProcedureQuery(name="readBonus", procedureName="calculatebonus", parameters={
+	@StoredProcedureParameter(mode=ParameterMode.IN, name = "eno", type=Integer.class),
+	@StoredProcedureParameter(mode=ParameterMode.OUT, name = "empname", type=String.class),
+	@StoredProcedureParameter(mode=ParameterMode.OUT, name = "bonus", type=Double.class),
+})
+public class Emp {
+	@Id
+	private Integer empno;
+	private String ename;
+	private Double sal;
+	private Integer deptno;
+}
+package com.example.repository
+@Repository
+public interface EmpRepository extends JpaRepository<Emp, Integer> {
+	//Stored Procedure returns result in Map<String, Object>
+	@Transactional //This method execution must be within a single Transaction
+	@Procedure(name="readBonus")
+	Map<String, Object> findBonus(Integer eno);
+}
+package com.example.runner
+@Component
+public class MyRunner implements CommandLineRunner {
+
+	@Autowired
+	EmpRepository empRepo;
+
+	@Override
+	public void run(String... args) throws Exception {
+		Map<String, Object> output = empRepo.findBonus(7654);
+
+		
+		sysout("Employee name = "+output.get("name"));
+		sysout("Employee bonus = "+output.get("bonus").toString);//number from DB is returned in java as BigDecimal
+	}
+}
+application.properties
+-------------------------
+#add datasource properties
+spring.datasource.driver-class-name=
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
  
+
+quick learner - As a quick learner in my new team I have learnt Spring Boot, Microservice architecture & Mongo DB in a short time & started my work in the team.
+Challenging - As I always want to accept challenging work I have accepted to work with Japnese client where I was knowing that it wold be very difficult to implement business to the project. I have accepeted & finished the given tasks on or before the time lines - these thing improved my confidence over my challenges.
+
+Unique Values
+------------------
+Knowledge sharing -  
+
 
 
 
