@@ -2473,15 +2473,74 @@ spring.datasource.password=
 spring.jpa.show-sql=true
 spring.jpa.hibernate.ddl-auto=update
  
+ 
+Security - MVC Application(CRUD) - Employee Management System(EMS)
+=====================================================================
+index page
+-------------
+add employee - new page to enter employee details(addemployee.jsp - submit - db - return to index page & show success message)
 
-quick learner - As a quick learner in my new team I have learnt Spring Boot, Microservice architecture & Mongo DB in a short time & started my work in the team.
-Challenging - As I always want to accept challenging work I have accepted to work with Japnese client where I was knowing that it wold be very difficult to implement business to the project. I have accepeted & finished the given tasks on or before the time lines - these thing improved my confidence over my challenges.
+list employees - new page(employyeList.jsp - list all employees with edit & delete with each row)
 
-Unique Values
-------------------
-Knowledge sharing -  
+STS - new - Spring Starter Project 
+
+name : ems
+group : com.sathyatech
+artifact : ems
+package : com.ems
+dependencies : Spring Data JPA, Spring Web, MySQL Driver, Validation, 
+	<dependency>
+		<g>org.apache.tomcat.embed</groupId>
+		<a>tomcat-embed-jsper</artifactId>
+	</dependency>
+	<dependency>
+		<g>jstl</groupId>
+		<a>jstl</artifactId>
+		<version>1.2</version>
+	</dependency>
+
+next - finish
+
+view directory - src/main/webapp/WEB-INF/views
+index.jsp
+-------------
+<c:if test="${message ne null}">
+	<c:out value="${message}">
+</c:if>
+<hr>
+<a href="addEmployee">add employee</a>
+<a href="listEmployees">list employees</a>
 
 
+package com.ems.Entity;
+@Entity
+@Table(name="emp")
+public class Employee {
+	@Id
+	private Integer empno;
+
+	private String ename;
+	private Double sal;
+	private Integer deptno;
+
+}
+
+package com.ems.repository;
+@Repository
+public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
+
+}
+
+package com.ems.bean; //to map bean data with UI
+public class EmployeeBean {
+	private Integer empno;
+	private String enmae;
+	private Double sal;
+	private Integer deptno;
+	
+	//Setters/ Getters
+
+}
 
 
 
