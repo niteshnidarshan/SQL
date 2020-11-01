@@ -2512,6 +2512,81 @@ index.jsp
 <a href="listEmployees">list employees</a>
 
 
+addEmployee.jsp
+--------------------------
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<form:form action="saveEmployee" method="post" modelAttribute="empModel">
+	<table>
+		<tr>
+			<td>
+				empno
+			</td>
+			<td>
+				<form:input path="empno"/>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				empname
+			</td>
+			<td>
+				<form:input path="empname"/>
+			</td>
+		</tr>
+		---
+		---
+	</table>
+</form:form>
+
+
+employeesList.jsp
+---------------------
+<a href="addEmployee">Add more Employee</a>
+
+<table>
+	<tr>
+		<th>emp no</th>
+		<th>emp name</th>
+		<th>sal</th>
+		<th>dept</th>
+		<th>actions</th>
+	</tr>
+
+	<c:if test="${!empty empModelList}">
+	<c:forEach items="${empModelList}" var="emp">
+	<tr>
+		<td> <c:out value="${emp.empno}"/> </td>
+		<td> <c:out value="${emp.empname}"/> </td>
+		<td> <c:out value="${emp.sal}"/> </td>
+		<td> <c:out value="${emp.deptno}"/> </td>
+
+		<td>
+			<a href="editEmployee?id=${emp.empno}"><img src="imgs/edit_image.jpg" width="40">Edit</a> // image location - src/main/resources/static/imgs
+			<a href="deleteEmployee?id=${emp.empno}"><img src="imgs/del_image.jpg" width="40">Delete</a> 
+		</td>
+	</tr>
+	</c:forEach>
+	</c:if>
+	
+
+</table>
+
+
+editEmployee.jsp
+---------------------
+<form:form action="updateEmployee" method="post" modelAttribute="emodel">
+	<table>
+		<tr>
+			<td>empno</td><td><form:input path="empno" readonly="true"/></td>
+		</tr>
+
+		---
+		---
+		---
+	</table>
+</form:form>
+
+
 package com.ems.Entity;
 @Entity
 @Table(name="emp")
@@ -2541,6 +2616,236 @@ public class EmployeeBean {
 	//Setters/ Getters
 
 }
+
+package com.ems.controller
+@Controller
+public class EmployeeController {
+	@Autowired
+	EmployeeRepository repository;
+
+	@GetMapping("/index")
+	public String getIndexPage(){
+		return "index";
+	}
+
+	@GetMapping("/addEmployee")
+	public String getEmployeePage(Model model){
+		EmployeeBean empModel = new EmployeeBean();
+		model.addAttribute("empModel",empModel);
+		return "addEmployee";
+	}
+
+	@PostMapping("/saveEmployee")
+	public String saveEmployee(@ModelAttribute("empModel") EmployeeBean empModel, Model model){
+		Employee e = new Employee();
+		BeanUtils.copyProperties(empModel, e);//(source, target)- copy from source to target
+		boolean flag = repository.existById(e.getEmpno());
+		if(flag==true){
+			model.addAttribute("message","Employee with given empno already exist.");
+		}
+		esle{
+			repository.save(e);
+			model.addAttribute("message","Employee added successfully.");
+		}
+
+		return "index";
+	
+	}
+
+	@GetMapping("/listEmployees")
+	public String listEmployees(Model model){
+		List<Employee> empList = repository.findAll();
+		List<EmployeeBean> empModelList = new ArrayList<>();
+
+		empList.forEach(e->{
+			EmployeeBean emodel = new EmployeeBean();
+			BeanUtils.copyProperties(e, emodel);
+			emplModelList.add(emodel);
+		});	
+		
+		model.addAttribute("empModelList", empModelList);
+		return "employeesList";
+	}
+
+	@GetMapping("/editEmployee")
+	public String editEmployeePage(@RequestParam("id") int empno, Model model) {
+		Employee e = repository.findById(empno).get();
+		EmployeeBean emodel = new EmployeeBean();
+		BeanUtils.copyProperties(e, emodel);
+		model.addAttribute("emodel", emodel);
+		return "editEmployee";
+	}
+
+	@PostMapping("/updateEmployee")
+	public String updateEmployee(@ModelAttribute("emodel") EmployeeBean emodel){
+		Employee e = new Employee();
+		BeanUtils.copyProperties(emodel, e);
+		repository.saveAndFlush(e); //Behaves in two ways - either to save or to update.
+		return "redirect:listEmployee"; //"redirect:" - prefix indicates to redirect to the associated url.
+	}
+
+	@GetMapping("/deleteEmployee")
+	public String deleteEmployee(@RequestParam("id") int empno) {
+		repository.deleteById(empno);
+		return "redirect:listEmployees";
+	}
+	
+}
+
+application.properties
+---------------------------
+server.port=2121
+server.servlet.context-path=/Ems
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.prefix=.jsp
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=
+spring.datasource.user=
+spring.datasource.password=
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+
+run - http://localhost:2121/Ems/index
+
+
+Spring Security
+---------------------
+Security is the combination of Authentication+Authorisation.
+
+Authentication = Verifying user credentials - primarily to verify(mandatory).
+Authorisation = permission.
+
+Every Authenticated user are not Authorised user.
+
+An web application consist multiple urls, some url are public but some are accessible to particular group of users.
+To protect the urls from unauthorised users, need to provide security.
+
+In web application development, need to define security in Web Filter classes - filters to be defined for authenticate/ authorise/ session management/ logout etc., then need to map these to web.xml.
+
+In Spring security, all the Filter classes are defined already, need to just use them - given a Spring Bean class - FilterChainProxy & DeligatingFilterProxy classes. Need to add DeligatingFilterProxy to web.xml & it will contact to FilterChainProxy class to perform security. Once the security checks done, request is forwarded to DispatcherServlet to execute the controller & return model.
+
+A filter consists of Pre & Post execution blocks.
+
+Request ---> DeligatingFilterProxy ---calls---> FilterChainProxy class ---calls---->Group of Filter classes--->request_forword_to_spring_mvc.
+
+- Need to configure DeligatingFilterProxy in web.xml
+
+- Once user is authenticated, request is forwarded from Spring Security to Spring MVC.
+
+- In order to check the user credential & roles, AuthenticationManager object is required. AuthenticationManager object is obtained in Configuration class.
+
+- Configuration class is mandatory which is done by extending SpringSecurityConfigurer class.
+
+- In not a boot app then use the following dependencies : 
+
+	1) spring-security-core
+	2) spring-security-web
+	3) spring-security-config
+
+- In case of boot app then use spring-boot-starter-security dependency & then no need to configure anything in web.xml. But need to extend WebSecurityConfigurerAdaptor class in the Configuration class.
+
+
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+	@Override
+	public void configure(HttpSecurity http) {
+		- Which requests to be authenticated?
+		- Whether to support form-based or Http Basic authentication?
+		- Which role of usres can access which urls?
+		- restrict multiple sessions at a time?
+		- logout feature?
+	}
+
+	@Autowired
+	public void configureGlobal(AuthenticationManagerBuilder builder) {
+		- AuthenticationManagerBuilder is a helper class to build AuthenticationManager object.
+		- AuthenticationManagerBuilder object stores users with roles & it can be initialised with In-memory or Database authentication model.
+		- security filters uses AuthenticationManager object in authentication process.
+	}
+}
+
+Security Implementation - On EMS App
+----------------------------------------
+In EMS app, implement security on users with role admin can delete an Employee. All remain functions can be accessed by any user.
+
+1) Add dependency - spring-boot-starter-security
+
+2) create security configuration class
+
+package com.ems.security
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Autowired
+	BCrypt	PasswordEncoder encoder; //from springframework.security
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		//Method chain 
+		http.authorizeRequests()
+		.antMatchers("/delete**") //requests starts with delete followed by anything
+		.hasAnyRole("ADMIN")
+		.anyRequest().permitAll()
+		.and()
+		//.httpBasic()//Basic authentication model - for spring based login prompt 
+		.formLogin()//Form based authentication model - for spring based form login page
+		//If role is different for the user(Authorisation failed) then it says Whitelable error page
+		//instead of Whitelable default error page, I want my own error page
+		.exceptionHandling().accessDeniedPage("/WEB-INF/views/accessDenied.jsp")//In case of exception in authorisation, it will show our jsp page.
+		.and()
+		.csrf()
+		.disable();
+	}
+
+	@Autowired //To autowire method parameter
+	public void configureGlobal(AuthenticationManagerBuilder builder) throws Exception {
+		builder.inMemoryAuthentication()
+		.withUser("Ritik").password(encoder.encode("123456")).roles("ADMIN")
+		.and()
+		.withUser("Ankit").password(encoder.encode("ankit@123")).roles("LEAD");
+	}
+
+	@Bean
+	public BCryptPasswordEncoder bcrypt() {
+		return new BCryptPasswordEncoder();
+	}
+}
+
+
+accessDenied.jsp
+--------------------
+<h2 style="border:2px solid yellow; width: 700px;">
+	You are unauthorised to access!
+</h2>
+
+
+Security from USER-DB & restrict user session with SSL
+----------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
