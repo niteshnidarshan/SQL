@@ -2826,6 +2826,97 @@ accessDenied.jsp
 
 Security from USER-DB & restrict user session with SSL
 ----------------------------------------------------------
+1) Tables : USERS(username, password, enabled(0/1)), --0=disabled|1=enabled  | Parent Table
+	AUTHORITIES(authority, username) --username=foreign_key | Child Table
+
+	create table users(username varchar(15), password varchar(130), enabled tinyint, primary key(username));
+	create table authorities(authority varchar(25), username varchar(15) references users(username));
+
+2) Add JDBC dependency - spring-boot-starter-jdbc
+
+package com.ems.runner
+@Component
+public class MyRunner implements CommandLineRunner {
+
+	/**
+	*	After executing this once, disable @Component - One time execution for user insertion in DB
+	*/ 
+
+	@Autowired
+	JdbcTemplate jdbcTemplate;
+
+	@Override
+	public void run(String... args) throws Exception {
+		
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		
+		String pwd1 = encoder.encode("anshu@1211");//Password to be encrypted
+		String pwd2 = encoder.encode("ram@n181");//Password to be encrypted
+		String pwd3 = encoder.encode("bhuvi_108");//Password to be encrypted
+
+		//insert three users with encrypted password
+		jdbcTemplate.update("insert into users values(?,?,?)", "anshu", pwd1, 0);
+		jdbcTemplate.update("insert into users values(?,?,?)", "rama", pwd2, 1);
+		jdbcTemplate.update("insert into users values(?,?,?)", "bhuvi", pwd3, 1);
+
+		jdbcTemplate.update("insert into authorities values(?,?)", "ROLE_ADMIN", "anshu");
+		jdbcTemplate.update("insert into authorities values(?,?)", "ROLE_ADMIN", "bhuvi");
+		jdbcTemplate.update("insert into authorities values(?,?)", "ROLE_LEAD", "rama");
+		
+	}
+}
+
+
+package com.ems.security
+@Configuration
+@EnableWebSecurity
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+	@Autowired
+	BCrypt	PasswordEncoder encoder; //from springframework.security
+
+	@Autowired
+	@DataSource dataSource; // To get users from DB
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		//Method chain 
+		http.authorizeRequests()
+		.antMatchers("/delete**") //requests starts with delete followed by anything
+		.hasAnyRole("ADMIN")
+		.anyRequest().permitAll()
+		.and()
+		//.httpBasic()//Basic authentication model - for spring based login prompt 
+		.formLogin()//Form based authentication model - for spring based form login page
+		//If role is different for the user(Authorisation failed) then it says Whitelable error page
+		//instead of Whitelable default error page, I want my own error page
+		.exceptionHandling().accessDeniedPage("/WEB-INF/views/accessDenied.jsp")//In case of exception in authorisation, it will show our jsp page.
+		.and()
+		.csrf()
+		.disable();
+	}
+
+	@Autowired //To autowire method parameter
+	public void configureGlobal(AuthenticationManagerBuilder builder) throws Exception {
+		/*
+		builder.inMemoryAuthentication()
+		.withUser("Ritik").password(encoder.encode("123456")).roles("ADMIN")
+		.and()
+		.withUser("Ankit").password(encoder.encode("ankit@123")).roles("LEAD");
+		*/
+
+		builder.jdbcAuthentication()
+		.dataSource(dataSource)
+		.usersByUsernameQuery("select ")
+		.authoritiesByUsernameQuery("select username, authority from authorities where username = ?")
+		.passwordEncoder(encoder);
+	}
+
+	@Bean
+	public BCryptPasswordEncoder bcrypt() {
+		return new BCryptPasswordEncoder();
+	}
+}
 
 
 
