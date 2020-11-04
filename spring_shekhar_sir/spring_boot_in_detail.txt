@@ -2511,6 +2511,8 @@ index.jsp
 <a href="addEmployee">add employee</a>
 <a href="listEmployees">list employees</a>
 
+<a href="logoutMe">Log out</a>
+
 
 addEmployee.jsp
 --------------------------
@@ -2541,6 +2543,8 @@ addEmployee.jsp
 
 employeesList.jsp
 ---------------------
+<a href="logoutMe">Log out</a>
+
 <a href="addEmployee">Add more Employee</a>
 
 <table>
@@ -2587,6 +2591,12 @@ editEmployee.jsp
 </form:form>
 
 
+logout.jsp
+---------------
+<h3>You r successfully logged out.</h3>
+<a href="index">Home</a>
+
+
 package com.ems.Entity;
 @Entity
 @Table(name="emp")
@@ -2626,6 +2636,12 @@ public class EmployeeController {
 	@GetMapping("/index")
 	public String getIndexPage(){
 		return "index";
+	}
+
+	//Handle logout redirect after logout to show logout message.
+	@GetMapping("/loggedOut")
+	public String userLogout() {
+		return "logout";
 	}
 
 	@GetMapping("/addEmployee")
@@ -2894,6 +2910,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		.and()
 		.csrf()
 		.disable();
+
+		//Restrict user to login from multiple browsers
+		http.sessionManagement().maximumSessions(1);
+
+		//logout - To invalidate the session
+		http.logout().logoutUrl("logoutMe").logoutSuccessUrl("/loggedOut").permitAll();
+		//logout() - will invalid/ close the session
+		//logoutUrl("logoutMe") - logout request url
+		//logoutSuccessUrl("/loggedOut") - after log out request need to redirect with this url.
+		//permitAll() - To allow "/loggedOut" url for all.
 	}
 
 	@Autowired //To autowire method parameter
@@ -2907,7 +2933,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		builder.jdbcAuthentication()
 		.dataSource(dataSource)
-		.usersByUsernameQuery("select ")
+		.usersByUsernameQuery("select username, password, enable from users where username=?")
 		.authoritiesByUsernameQuery("select username, authority from authorities where username = ?")
 		.passwordEncoder(encoder);
 	}
@@ -2918,8 +2944,38 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 }
 
+https channel
+----------------
+- To send some/all pages between client & server on secured channel
+
+client -------https(with encryption)------->server
+
+- A password protected certificate with public-private key pair is required. 
+- From server public key will be published to client, server decrypts data with private key.
+- browser decrypts data with public.
+
+- certificate is created by trusted CA(Certificate Authorities) like Verisign, B2B, enTrust, trustCenter, etc.
+- CA(Certificate Authorities) creates security certificates.
+
+- self signed certificate is used for testing - from JDK, keytool application is prvided, which is used to create self signed certificate
+- this self signed certificate is installed in server.
+- With command prompt of JDK, self sign certificate is created. 
+
+To generate Self Signed Certificate
+-----------------------------------------
+1) open command prompt
+2) $ keytool -genkeypair -alias sathya -keyalg RSA -keystore D:\keystore.jks -validity 30
+
+	provide password & all the asked informations
+
+//keyalg= key algorithm
+//keystore = to provide generated filename & location
+//.jks = java key store
+//validity = 30 days
 
 
+
+ 
 
 
 
