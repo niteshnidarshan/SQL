@@ -2920,6 +2920,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		//logoutUrl("logoutMe") - logout request url
 		//logoutSuccessUrl("/loggedOut") - after log out request need to redirect with this url.
 		//permitAll() - To allow "/loggedOut" url for all.
+
+		//SSL - Application has to serve all the pages on secured channel(SSL).
+		http.requiredChannel().anyRequest().requiresSecure(); //To specify particular request use antMatchers("/request"...) instead of anyRequest().
 	}
 
 	@Autowired //To autowire method parameter
@@ -2966,15 +2969,57 @@ To generate Self Signed Certificate
 1) open command prompt
 2) $ keytool -genkeypair -alias sathya -keyalg RSA -keystore D:\keystore.jks -validity 30
 
-	provide password & all the asked informations
+	provide password & all the asked informations & remember those.
 
 //keyalg= key algorithm
 //keystore = to provide generated filename & location
 //.jks = java key store
 //validity = 30 days
 
+3) put keystore.jks file in src/main/resources.
+
+4) application.properties
+-----------------------------
+server.ssl.key-password=spring
+server.ssl.key-alias=sathya
+server.ssl.key-store=classpath:keystore.jks
+server.ssl.key-store-type=JKS
+ 
+
+5) Run app
+
+6) 	http://localhost:2121/Ems/index - will show Bad Request message.
+	https://localhost:2121/Ems/index - OK
 
 
+Page Level security
+-----------------------
+- According to user role have to show/ hide content of the page.
+- Delete link in the Employee List page, should be shown only for the admin role user.
+- It will be imposed via jsp.
+1) add a dependency in pom.xml - spring-security-taglibs
+2) In employeeList.jsp
+	<%@taglib uri="http://www.springframework.org/security/tags" prefix="security"%>
+
+
+	<td>
+		<a href="editEmployee?id=${emp.empno}"><img src="imgs/edit_image.jpg" width="40">Edit</a> // image location - src/main/resources/static/imgs
+		
+		<security:authorize access="hasRole('ROLE_ADMIN')">
+			<a href="deleteEmployee?id=${emp.empno}"><img src="imgs/del_image.jpg" width="40">Delete</a> 
+		</security:authorize>
+	</td>
+
+Oauth/ Oauth2 securities for Rest Services
+
+
+	
+https://ssc.larsentoubro.com/SALUX
+Abc@123321
+
+	
+
+	
  
 
 
