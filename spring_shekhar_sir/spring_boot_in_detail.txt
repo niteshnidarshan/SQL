@@ -3010,7 +3010,97 @@ Page Level security
 		</security:authorize>
 	</td>
 
+Difference between Web application & Web service
+========================================================
+
+	- Web application share pages while web services shares data/ functionalities.
+	- Web application shares directly to the end user while web services shares to technologies/ applications
+	- Web services can be easily developed & maintained and lightweight.
+
+
+1) Interoperable communication 
+-------------------------------
+consumer(any language) -----------> Provider [Webservice] (any language)
+
+To create webservices, two specifications are there :
+	1) SOAP(Simple Object Access Protocol) - Uses xml to exchange data between consumer & provider.
+	2) REST(Representational State Transfer) - Lightweight protocol to exchange data between consumer & provider. 
+
+	For Rest, Sun Microsystem released a specification called JAX-RS. And different implementations has been provided like - Jersey, CXF, resteasy, axis2 etc. We use either sun provided JAX-RS or Spring REST Api for creating REST Web services. JAX-RS and Spring REST Api are two different ways.
+
+2) Provide Service - to whome
+------------------------------------
+In order to provide services to direct end user, we create web application.
+Web application provides pages to serve end user.
+while
+In order to provide services to other application i.e not direct end user, we create web services.
+Web service provides data to other application.
+
+
+3) Terminology
+-----------------
+Webservices are created to share/expose the resources[data/functionality] to other consumer applications.
+url - each resource is identified with an url. 
+resource - what data/functionality, api wants to provide.
+
+for e.g. - http://www.infy.com/employee/72319 = accesses/reads the details of a particular employee.
+http://www.citi.com/card/validate/19892737280 = functionality to validate a card 
+
+
+Web services
+-----------------
+	1) SOAP - Follows W3c Web Consortium
+		- WSDL(Web Services Description Language), Supports XML format, USSD registry, Complicated.
+		- Sun provided JAX-WS specifications
+		
+	2) RESTful - Follows REST Architecture. [Sun provided JAX-RS & Spring REST specifications are used]
+
+		- To create a web service(Service provider)
+		- To access a web service(Service consumer)
+
+		- JAX-RS specification implementations :
+			Jersey, RESTEasy, Axis2, CXF
+
+
+		REpresentational State Transfer :
+			- Everything is treated as resource(Data/ functionalities). No web pages.
+			- Every resource is identified by a unique URI(Uniform Resource Identifier).
+				URI - Within server is treated as URI 
+				URL - outside server is treated as URL & it is associated with a port. 
+			- Returned data can be represented in JSON, XML or HTML.
+
+			- Representational - MIME Types - JSON, XML or HTML
+			- State Transfer - When a client make a request to an URI with a http method, client is asking for current data or it can be changed/transferred to other state like update/ delete. 		
+			for e.g. - http://www.infy.com/employee/allen - To identify the resource - client may want to get/read data about 'allen' or may want to change the data related to 'allen'.
+			- current data exist in server, client wants to read/change this data state by updating it or deleting it.
+			- resources are manipulated with http methods like - POST, PUT, DELETE
+			
+			GET - To Read a resource
+			POST - To Create a resource
+			PUT - To Update a resource
+			DELETE - To Delete/ Discard a resource
+
+			Stateless - Communication between Consumer & Service Provider is stateless - Means service provider(Web Service) does not remember any state of client. In every request a consumer has to send always required information.
+
+			- In MVC or REST - Servlet Dispatcher is the Front Controller in both. 
+			But for REST, No View Resolver & Handler classes are available.
+
+			- In Spring Boot, spring-boot-starter-web dependency is used for both Spring MVC and REST applications.
+
+
+			
+			
+
+
+
+
+
 Oauth/ Oauth2 securities for Rest Services
+
+
+
+
+
 
 
 	
