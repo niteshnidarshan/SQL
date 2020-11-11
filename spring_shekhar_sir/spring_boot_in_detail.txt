@@ -3083,9 +3083,57 @@ Web services
 			Stateless - Communication between Consumer & Service Provider is stateless - Means service provider(Web Service) does not remember any state of client. In every request a consumer has to send always required information.
 
 			- In MVC or REST - Servlet Dispatcher is the Front Controller in both. 
-			But for REST, No View Resolver & Handler classes are available.
+			But for REST, No View Resolver & view resolver handler classes are available.
 
 			- In Spring Boot, spring-boot-starter-web dependency is used for both Spring MVC and REST applications.
+
+
+Spring MVC flow
+---------------------
+Browser(client) <---> Dispatcher Servlet <---> Handler Mapping <---> Controller[Service/ DAO/ DTO / DB] <---> View Resolver <---> Actual View.
+
+
+
+Spring Rest with Spring Boot
+---------------------------------
+In Spring Rest, need to create RestController classes which returns data/ resource with representation(JSON, XML Or HTML).
+
+Application(client) <---> DS <---> HM <---> RestController <---> Service/ DAO/ DTO / DB <---> Returns Data with Representation(JSON/XML/HTML).
+
+Here, no view!, It directly Returns Data with Representation(JSON/XML/HTML) in ResponseBody.
+
+Stereo Type Annotations :
+---------------------------
+ - Earlier(before spring 4.2) to make a class for REST, we used to use @Controller[class level] + @ResponseBody[method level]
+
+	@Controller - Controller class	
+
+ - From spring 4.2 instead of using two annotations for REST (@Controller & @ReponseBody), has to use single annotation at class level - @RestController.
+
+	@RestController
+
+ - java object to be serialized(java Object to JSON/XML format)/ deserialzed(JSON/XML to Java Object) - jackson-databind api dependency - included in spring-boot-starter-web dependency.
+
+ - By default Response MIME Type is JSON.
+
+ - End Points/ Rest End Points = service URI
+
+	@RestController
+	public class ProductRestController  {
+
+		@GetMapping("/products")
+		public List<Product> fetchProducts() { //Handler method
+			//code
+		}
+
+	}
+
+
+ 
+
+
+
+
 
 
 			
