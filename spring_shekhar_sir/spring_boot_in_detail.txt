@@ -3125,9 +3125,46 @@ Stereo Type Annotations :
 		public List<Product> fetchProducts() { //Handler method
 			//code
 		}
+		@PostMapping("/product/add")
+		public String addNewProduct(@RequestBody Product product) { 
+			//Client sends data in JSON with RequestBody - to convert this JSON to java object, @RequestBody is used. [Deserialize JSON/XML request body 			//to java object]
+			//@ResponseBody serialize Java Object to JSON/XML.
 
+						
+
+			//Code
+			
+		}
+		//Define an URI to get Product details based on Id
+		@GetMapping("/product/{id}")
+		public Product fetchProductById(@PathVariable("id") Integer pid) {
+			
+			//{-} - PathVariable are included within the {}. multiple path variables can be added in an URI
+			//To inject/bind path variable in method parameter need to use, @PathVariable("path_variable_name")
+			/Restful webservices can accept the data from client in two ways 1) from RequestBody & 2) from Request URL.
+			//Sensitive data should be sent in RequestBody only.
+
+			//Code
+		}
+
+		//QueryParameter/RequestParameter with ?key=value & MatrixVariable
+		@DeleteMapping("/product/delete")
+		public String deleteProductById(@RequestParam Integer pid) {
+			//@RequestParam("parameter_name") - parameter_name and 'pid' is same then optional else need to write - @RequestParam("parameter_name")
+			
+			//Client Request will be as - http://localhost:8080/api/product/delet?pid=10101
+		}
+		
 	}
 
+
+	@RestController
+	public class FlightRestController {
+		@GetMapping("/search/{source}/{destination}") 
+		public List<Flight> searchFlights(@PathVariable String source, @PathVariable String destination) {
+			//code
+		}
+	}
 
  
 
