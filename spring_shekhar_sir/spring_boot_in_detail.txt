@@ -3167,16 +3167,220 @@ Stereo Type Annotations :
 	}
 
  
+Spring Rest
+============
+@RestController = @Controller + @ResponseBody
+@RequestBody
+@PathVariable
+@RequestParam
+@MatrixVariable
+
+ResponseEntity class
+------------------------
+	ResponseEntity object = body+status or body+headers+status
+
+Restful Webservice to create endpoints for clients to perform CRUD operations
+-----------------------------------------------------------------------------------
+RestController 
+-----------------
+Method		endpoint				description
+-------	-----------				--------------
+GET  		/allProducts				returns the details of all products
+GET		/{id}					returns the details of a specific product
+GET		/products/{manufacturer}		returns the details of products of a manufacturer
+POST		/product/add				add a new product
+PUT		/product/update			updates a new product
+DELETE		/product/delete?id=xxx		deletes a product based on query parameter
+
+With the help of Swagger, API list documentation is created.
+
+RestController ---> Service ---> Dao ---> DB.
+
+name : pms-rest
+group : 
+artifact :
+package : com.pms
+dependencies : web, data jpa, MySQL Driver, lombok			
 
 
-
-
-
-
+package com.pms.entity
+@Entity
+@Table(name="PRODUCTS")
+public class Product {
+	@Id
+	private Integer productId;
+	private String productName;
+	private Double price;
+	private String manufacturer;
+}
 			
+package com.pms.model //To keep dto classes
+public class ProductDTO {
+	
+	private Integer productId;
+	private String productName;
+	private Double price;
+	private String manufacturer;
+
+}
 			
+package com.pms.repository
+@Repository
+public interface ProductRepository extends JpaRepository<Product, Integer> {
+	//Query Creation Approach by method
+	List<Product> findByManufacturer(String manufacturer);
+}
 
+package com.pms.service
+public interface IProductService {
+	List<ProductDTO> searchAllProducts();
+	ProductDTO searchProductById(Integer id);
+	List<ProductDTO> searchProductsByManufacturer(String manufacturer);
+	String addProduct(ProductDTO productDTO);
+	ProductDTO updateProduct(ProductDTO productDTO);
+	String deleteProductById(Integer id);
+}
 
+//Entity class uses mapping with DB. It may be used with Reflection to obtain So, We do not want to expose data entity class to client so, need to use DTO class here. 
+
+package com.pms.service.impl;
+@Service
+public class ProductServiceImpl implements IProductService {
+	@Autowired
+	ProductRepository productRepository;
+
+	@Override
+	List<ProductDTO> searchAllProducts() {
+		List<Product> productList = productRepository.findAll();
+		List<ProductDTO> productDTOList = new ArrayList<>();
+		productList.forEach( product -> {
+			ProductDTO productDTO = new ProductDTO();
+			BeanUtils.copyProperties(product, productDTO);
+			productDTOList.add(productDTO);
+		});
+		return productDTOList;
+	}
+
+	@Override
+	ProductDTO searchProductById(Integer id) {
+		Optional<Product> opt = productRepository.finById(id);
+		if(opt.isPresent()){
+			Product product = opt.get();
+			ProductDTO productDTO = new ProductDTO();
+			BeanUtils.copyProperties(product, productDTO);
+			return productDTO;
+		}
+		return null;
+	}
+
+	@Override
+	List<ProductDTO> searchProductsByManufacturer(String manufacturer) {
+		List<Product> productList = productRepository.findByManufacturer(manufacturer);
+		List<ProductDTO> productDTOList = new ArrayList();
+		productList.forEach(product -> {
+			ProductDTO productDTO = new ProductDTO();
+			BeanUtils.copyProperties(product, productDTO);
+			productDTOList.add(productDTO);
+		});
+		return productDTOList;
+	}
+
+	@Override
+	String addProduct(ProductDTO productDTO) {
+		Product product = new Product();
+		BeanUtils.copyProperties(productDTO, product);
+		if(productRepository.existByid(product.getProductId())) {
+			return "Product already exist!";
+		}
+		else {
+			productRepository.save(product);
+			return "Product is added to DB!";
+		}
+	}
+
+	@Override
+	ProductDTO updateProduct(ProductDTO productDTO) {
+		Product product = new Product();
+		BeanUtils.copyProperties(productDTO, product);
+		if(productRepository.existById(product.getProductId())) {
+			productRepository.saveAndFlush(product);
+			return productDTO;
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Override
+	String deleteProductById(Integer id) {
+		if(productRepository.existById(id)) {
+			productRepository.deleteById(id);
+			return "Product is deleted successfully!"
+		}
+		else {
+			return "Product does not exist!"
+		}
+	}
+}
+
+package com.pms.controller;
+@RestController
+public class ProductRestController {
+	@Autowired 
+	IProductService service;
+	
+	@GetMapping(value = "/allProducts", produces="application/json")
+	public ResponseEntity<List<ProductDTO>> findAllProducts() {
+		List<ProductDTO> productDTOList = service.searchAllProducts();
+		return new ResponseEntity<List<ProductDTO>>(productDTOList, HttpStatus.OK);
+
+		//ResponseEntity is a Generic type class to return response body with status.
+		//OK = 200
+	}
+
+	@GetMapping(value="/{id}", produces={"application/json"})
+	public ProductDTO findProductById(@PathVariable Integer id) {
+		return service.searchProductById(id);
+	}
+
+	@GetMapping(value="/products/{manufacturer}", produces="application/json")
+	public List<ProductDTO> findProductsByManufacturer(@PathVariable String manufacturer) {
+		return service.searchProductsByManufacturer(manufacturer);
+	}
+
+	@PostMapping(value="/product/add", consumes="application/json")
+	public String addProduct(@RequestBody ProductDTO productDTO) {
+		return service.addProduct(productDTO);
+	}
+
+	@PutMapping(value="/product/update", consumes="application/json")
+	public String updateProduct(@RequestBody ProductDTO productDTO) {
+		ProductDTO dto = service.updateProduct(productDTO);
+		if(dto==null)
+			return "Product does not exist!";
+		else
+			return "Product updated successfully!"
+	}
+
+	@DeleteMapping(value="/product/delete/{id}")
+	public String deleteProductById(@PathVariable Integer id) {
+		return service.deleteProductById(id);
+	}
+}
+
+application.properties
+--------------------------
+server.port=2727
+server.servlet.context-path=/pms
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/test
+spring.datasource.username=root
+spring.datasource.password=root
+
+spring.jpa.hibernate.ddl-auto=update
+
+	
 
 
 
@@ -3186,7 +3390,7 @@ Oauth/ Oauth2 securities for Rest Services
 
 
 
-
+Piyush Priyadarshi 9000585533 - call him @2:00 pm - manager - epam
 
 	
 https://ssc.larsentoubro.com/SALUX
