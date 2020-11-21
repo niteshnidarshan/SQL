@@ -3392,12 +3392,15 @@ public class MyRunner implements CommandLineRunner {
 	@Autowired
 	RestTemplate restTemplate;
 	
-	private static String ALL_PRODUCTS = "http://localhost:2727/pms/allProducts";
+	private static String ALL_PRODUCTS 	= "http://localhost:2727/pms/allProducts";
+	private static String PRODUCT_BY_ID 	= "http://localhost:2727/pms/{id}";
+	private static String ADD_PRODUCT		= "http://localhost:2727/pms/product/add";
+	private static String DELETE_PRODUCT	= "http://localhost:2727/pms/product/delete/{id}";
 
 	@Override		
 	public void run(String... args) throws Exception {
 	
-		//exchange(p1,p2,p3,p4) - always returns ResponseEntity
+		//restTemplate.exchange(p1,p2,p3,p4) - always returns ResponseEntity
 		//p1 - URL
 		//p2 - HttpMethod
 		//p3 - HttpEntity object/ null
@@ -3417,6 +3420,46 @@ public class MyRunner implements CommandLineRunner {
 			sysout("Product Manufacturer : "+dto.getManufacturer());
 			sysout(-------);
 		});
+
+		/**
+		* restTemplate.getForObject(p1,p2,p3)
+		* p1 = url
+		* p2 = response type
+		* p3 = values [its a var... args parameter]
+		*/
+
+		ProductDTO pdto = restTemplate.getForObjet(PRODUCT_BY_ID, ProductDTO.class, 109)//109 is the id to get product record
+		sysout("Product Id : "+pdto.getProductId());
+		sysout("Product Name : "+pdto.getProductName());
+		sysout("Product price : "+pdto.getPrice());
+		sysout("Product Manufacturer : "+pdto.getManufacturer());
+
+
+
+		//To Add A Record from client to REST APP.
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		
+		ProductDTO productDto = new ProductDto();
+		productDto.setProductId(112);
+		productDto.setProductName("TOY");
+		productDto.setPrice(749.0);
+		productDto.setManufacturer("Nikon");
+		
+		HttpEntity entity = new HttpEntity(productDto, headers);
+
+		//exchange() is a common method to use any method like GET, POST, PUT etc.
+		ResponseEntity<String> res = restTemplate.exchange(ADD_PRODUCT, HttpMethod.POST, entity, String);
+	
+		sysout(res.getBody());
+
+		//For put use same strategy
+
+		//To Delete a record
+		ResponseEntity<String> msg = restTemplate.exchange(DELETE_PRODUCT, HttpMethod.DELETE, null, String.class, 112); //Fourth parameter is a response type.
+		sysout(msg.getBody());
+		
 	}
 }
 
@@ -3443,7 +3486,7 @@ pubic class PmsClientApplication {
 	}
 }
 
-	
+Swagger - A tool to generate REST API Documentation.
 
 
 
