@@ -3486,6 +3486,95 @@ pubic class PmsClientApplication {
 	}
 }
 
+Caching support
+===================
+Instead of fetching the data from db every time, it should be fetched data once & store it in chache locally.
+It should support for whole application for all client requests.
+
+Chache Provider API
+-------------------
+JChache
+EHChache 
+RadisChache
+...
+
+Spring provided caching annotation to utilise Cache from chache provider API for store/update/delete/fetch cache data.
+
+Integrate RadisChache(In memory) in REST app
+-----------------------------------------------
+ReDiS = Remote Dictionary Server - stores data in key-value pair.
+
+1) install & start redis server from redis zip(It also includes redis client to check it is working or not). It will run on port - 6379.
+Run Redis client - It will prompt terminal with localhost:6379.
+Check it :
+$localhost:6379> ping
+$localhost:6379> set msg hello [get key value]
+ok
+$localhost:6379> get msg [get key]
+"hello"
+$localhost:6379> expire msg 10 [expire key time_in_seconds]
+$localhost:6379> del msg [del key]
+
+2) add starter dependencies in Rest App pom.xml - spring-boot-starter-data-redis & spring-boot-starter-cache.
+3) use caching annotations of Spring.
+
+	@SpringBootApplication
+	@EnableCaching
+	public class PmsRestApplication {
+		
+		public static void main(String[] args) {
+			SpringApplication.run(PmsRestApplication.class, args);
+		}
+	
+	}
+
+	//Multiple cache regions can be created to store cache specifically module/purpose wise.
+	
+	methods level annotations :
+		@Cacheable(value="cache_name", key="#spring_expression" unless="conditions") - To check/store data in a cache. It first check - if data is not available in cache then it allows the method to run and when method runs it stores data in cache. Next time if data is available in cache then it will not allow the methods to execute DB operation, instead it will return data from cache. 
+		@CachePut - To update a data in DB as well as in cache.
+		@CacheEvicts - To delete a data in DB as well as in cache.
+
+
+	@Service
+	public class ProductServiceImpl implements IProductService {
+
+		---
+		---
+		---
+
+		@Cacheable(value = "All_Products_Cache", key = "#root.methodName") //Here #root will become ProductServiceImpl.searchAllProducts [class name]
+		@Override
+		public List<ProductDTO> searchAllProducts() {
+			---
+			---
+			---
+		}
+	}
+
+	In Redis client console :
+	$ localhost:6379> keys*
+		1) "All_Products_Cache"::"searchAllProducts"
+	$ localhost:6379> del All_Products_Cache::searchAllProducts // will delete this key pair in cache & then fetch data from DB.
+
+	$ localhost:6379> expire All_Products_Cache::searchAllProducts 15 // after 15 seconds data will be erased in Cache.
+
+
+4) application.properties
+--------------------------
+spring.cache.type=redis
+spring.redis.host=localhost
+spring.redis.port=6379
+spring.jpa.show-sql=true #To check DB is executing or not.
+
+
+5) NotSerializableException : implements the ProductDTO with java.io.Serializable - In cache, serializable object is stored.
+
+
+
+	
+
+
 Swagger - A tool to generate REST API Documentation.
 
 
