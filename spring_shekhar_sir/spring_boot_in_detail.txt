@@ -3520,6 +3520,7 @@ $localhost:6379> del msg [del key]
 
 	@SpringBootApplication
 	@EnableCaching
+	@EnableScheduling // For scheduling 
 	public class PmsRestApplication {
 		
 		public static void main(String[] args) {
@@ -3550,6 +3551,35 @@ $localhost:6379> del msg [del key]
 			---
 			---
 		}
+
+		@Cacheable(value="singleProduct", key = "#id", unless="#result==null") //result is return value of method, if null then do not store in cache
+		@Override
+		public ProductDTO searchProductById(Integer id) {
+			---
+			---
+			---
+		}
+
+		@CachePut(value="Single_Product_Cache", key="#productDTO.productId", unless="#result==null") //To update the data in cache. It will allow to execute method first the update in cache. Here key represents method parameter object's attribute.
+		@Override
+		public ProductDTO updateProduct(ProductDTO productDTO) {
+			---
+			---
+			---
+		}
+		
+		@CacheEvict(value = "Single_Product_Cache", key="#id")//It will delete the data if exist in cache based on other Cache value attribute. here value is same as @CachePut & key is id which is the parameter of method.
+		@Override
+		public String deleteProductById(Integer id) {
+			---
+			---
+			---
+		}
+
+		//Schedule to delete all data 
+		@Scheduled(cron="0 2 20 * * ?") will execute daily 8:02pm
+		@CacheEvict(value="All_Product_Cache", allEntries=true)
+		public void clearStoreAllProductsCache() {}
 	}
 
 	In Redis client console :
