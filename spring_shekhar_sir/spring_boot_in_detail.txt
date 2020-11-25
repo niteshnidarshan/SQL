@@ -3601,11 +3601,110 @@ spring.jpa.show-sql=true #To check DB is executing or not.
 5) NotSerializableException : implements the ProductDTO with java.io.Serializable - In cache, serializable object is stored.
 
 
-
-	
-
+API Documentation
+=======================
+1) Manual (Difficult to update after API modification)
+2) Tools (Swagger)
 
 Swagger - A tool to generate REST API Documentation.
+-------------------------------------------------------
+Swagger is a specification & Springfox is the implementation of it.
+
+pom.xml Dependencies - springfox-swagger2 & springfox-swagger-ui
+
+@ApiOperation - To define description of each API at method level
+@ApiParam - Description about the method parameter - method parameter level
+@ApiResponse - To customise response codes - method level
+@ApiResponses - To customise response codes - method level
+
+DocketBean - It will determine which part of the application will be added to the documentation - need to register this object to RestContainer then Swagger will take help of it to generate documentation.
+
+- The documentation can be accessed with /swagger-ui.html.
+
+package com.pms.controller;
+@RestController
+public class ProductRestController {
+	@Autowired 
+	IProductService service;
+	
+	@ApiOperation("Returns the details of all products")
+	@ApiResponses({
+		@ApiResponse(code=200, message="Fetched the products successfully!")//code, customised message for response
+		@ApiResponse(code=404, message="Request URL is wrong!")
+	})
+	@GetMapping(value = "/allProducts", produces="application/json")
+	public ResponseEntity<List<ProductDTO>> findAllProducts() {
+		List<ProductDTO> productDTOList = service.searchAllProducts();
+		return new ResponseEntity<List<ProductDTO>>(productDTOList, HttpStatus.OK);
+
+		//ResponseEntity is a Generic type class to return response body with status.
+		//OK = 200
+	}
+
+	@ApiOperation("Returns the details of a specific product")
+	@GetMapping(value="/product/{id}", produces={"application/json"})
+	public ProductDTO findProductById(@PathVariable Integer id) {
+		return service.searchProductById(id);
+	}
+
+	@ApiOperation("Returns the details of all products based on manufacturer")
+	@GetMapping(value="/products/{manufacturer}", produces="application/json")
+	public List<ProductDTO> findProductsByManufacturer(@PathVariable String manufacturer) {
+		return service.searchProductsByManufacturer(manufacturer);
+	}
+
+	@ApiOperation("Adds a new product")
+	@PostMapping(value="/product/add", consumes="application/json")
+	public String addProduct(@ApiParam("A product details in JSON format") @RequestBody ProductDTO productDTO) {
+		return service.addProduct(productDTO);
+	}
+
+	@ApiOperation("Updates an existing product")
+	@PutMapping(value="/product/update", consumes="application/json")
+	public String updateProduct(@ApiParam("A product details in JSON format") @RequestBody ProductDTO productDTO) {
+		ProductDTO dto = service.updateProduct(productDTO);
+		if(dto==null)
+			return "Product does not exist!";
+		else
+			return "Product updated successfully!"
+	}
+
+	@ApiParam("Deletes a product by Id") 
+	@DeleteMapping(value="/product/delete/{id}")
+	public String deleteProductById(@PathVariable Integer id) {
+		return service.deleteProductById(id);
+	}
+}
+
+@SpringBootApplication
+@EnableCaching
+@EnableScheduling // For scheduling 
+@EnableSwagger2
+public class PmsRestApplication {
+		
+	public static void main(String[] args) {
+		SpringApplication.run(PmsRestApplication.class, args);
+	}
+
+	@Bean // To register object returned by the method to the spring container.
+	public Docket docket() {
+		Docket d = new Docket(DocumentationType.SWAGGER_2);
+		d.select().apis(RequestHandlerSelectors.basePackage("com.pms"))
+			.paths(PathSelectors.any())
+			.build()
+			.useDefaultResponseMessages(false);//not to show default response messages in swagger.
+		return d;
+	}
+	
+}
+
+http://localhost:2727/pms/swagger-ui.html
+
+Swagger also allows developers to test API in browser.
+
+
+
+
 
 
 
