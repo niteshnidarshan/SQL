@@ -3703,7 +3703,115 @@ http://localhost:2727/pms/swagger-ui.html
 Swagger also allows developers to test API in browser.
 
 
+Securing Rest Api
+=========================
+1) Spring Security
+2) Spring Security Oauth2 [Oauth version2]
 
+Oauth(Open authentication) is a specification/ standard/ open authorisation protocole.
+Facebook, Google, Twitter, Spring etc has provided its implementations.
+Spring implementation has named Spring Security Oauth2.
+
+An application Wants to use services provided by another without asking end user to share the password.
+Suppose, I am having an account in a website & the website using other services without asking my password.
+
+  
+ESPN.com wants to host/ share something to my facebook timeline without asking my face book password.
+
+or like asking sign in with google/ linkedIn/ facebook etc in quora.com.
+
+
+
+Four Rules - Spring Security Oauth2 has defined four rules
+-----------------------------------------------------------
+1) Resource Owner ---------> like user
+2) resource Server ---------> facebook
+3) Authorization Server [To grant tokens] --------> facebook [checks weather the user has facebook account or not, this Authorization server is from facebook in this case]
+4) client [Another website who wants to access resource] ---------> quora.com [can access the data from facebook resource server with tokens granted by authorization server]
+
+
+Five ways - Different ways to update access tokens
+-----------------------------------------------------
+Oauth tokens grant types - to call end points and access to resource.
+Grant types are provided to access tokens. 
+
+1) Authorization code grant type - This grant type is used by third party to access authorization token.
+2) resource owners credentials grant type - Trusted client from same organisation like facebook mobile app & facebook web, will use this grant type.
+3) implicit grant type - It is used by javascript applications to update access token.
+4) client credentials grant type - clients who wants to access its own data from resource server.
+5) refresh token grant type - One more time to be obtain access token if expired.
+
+
+We have To secure rest end point with OAUTH2 security.
+
+1) Authorization code grant type 
+	- This grant type is used by third party to access authorization token.
+	
+	flow 
+	--------
+	Resource Owner(end-user)/ client application in browser like Quora.com
+	sign in with facebook ---> redirect resource owner + POST request-------------> Authorization server[asks facebook login page user/pwd]
+					<----	Redirects resource owner with authorization code <---- Authorization server
+
+					---> client id + client secret + authorization code -------> Authorization server
+					<----	access token + refresh token <------------------------- Authorization server
+
+					---> calls API endpoint with access token ------------------> Resource server
+	Resource Owner(end-user)<----receives user's data <--------------------------------- Resource server
+
+
+	For this Quora.com has to register with facebook authorization server & get access & secret key.
+
+
+2) resource owners credentials grant type 
+	- Trusted client from same organisation like facebook mobile app & facebook web, will use this grant type.
+
+	Resource-owner/end-user(enters user/pwd) like facebook mobile & web --->
+		----------> sends post request with user credentials + client id + client secret ----> Authorization server
+		<-----------Access token + refresh token <---------------------------------------------Authorization server
+
+		---------> Calls API endpoint with access token ---------------------------------------> Resource server
+		---------> receives users data  <------------------------------------------------------- Resource server
+
+ 
+3) implicit grant type 
+	- It is used by javascript applications to update access token.
+
+	diagram same as resource owners credentials grant type but, user login will be done at Authorization server because, javascript can not validate user credential itself. And its generated access token will be of very short duration. And no refresh token will be generated. 
+
+
+4) client credentials grant type 
+	- clients who wants to access its own data from resource server.
+	- clients application itself is a resource owner. It has not to go anywhere outside to validate.
+
+	client app ----sends POST request with clientid + secret ------> Authorization server
+			<----access token <---------------------------------- Authorization server
+
+			-----> Calls API endpoint with access token ---------> Resource server
+			<----- receives Data --------------------------------- Resource server 
+
+
+5) refresh token grant type 
+	- One more time to be obtain access token if expired.
+
+
+	client app ----sends POST request with refresh token + clientid + client secret ------> Authorization server
+			<----access token + refresh token <----------------------------------------- Authorization server
+
+			------> calls API endpoint with access token --------------------------------> Resource server
+			<------ receives user's data <------------------------------------------------ Resource server
+
+
+
+
+
+
+
+
+arn:aws:s3:::nidarshan-s3/index.html
+
+https://nidarshan-s3.s3.us-east-2.amazonaws.com/index.html
+http://localhost:7791/api/media/downloadFile/niteshnidarshan5.jpg
 
 
 
