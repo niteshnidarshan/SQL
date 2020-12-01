@@ -3917,6 +3917,33 @@ public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdap
 	}
 }
 
+@SpringBootApplication
+@EnableResourceServer
+public class 
+
+
+http://localhost:5656/oauth/authorize?response_type=code&scope=read&client_id=clientapp - It will prompt login page to provide credential Then will be authenticated & redirects to approval page. I will return a code in url.
+
+In Postman :
+---------------
+POST : http://localhost:5656/oauth/token
+params : 
+	key			value
+	------		----------
+	grant_type		authorization_code
+	code			XCzgyw[Obtain from previous request]
+
+Authorization : Type :choose "Basic Auth"
+Username :
+Password : 
+
+send >
+
+Return will be access_toen, token_type, refresh_token, expires_in & scope.
+
+access_toen is required for further request as :
+
+	http:/ocalhost:5656/api/users/me?access_token=<access_toen>
 
 
 
