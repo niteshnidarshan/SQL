@@ -3947,6 +3947,216 @@ access_toen is required for further request as :
 
 
 
+Actuator
+=============
+dependency in pom.xml
+
+http://localhost:2727/pms/actuator/info - By default enabled
+http://localhost:2727/pms/actuator/health - By default enabled
+
+#below services to be enabled in application.properties
+http://localhost:2727/pms/actuator/beans - all the beans will be shown
+http://localhost:2727/pms/actuator/mappings - will show all mappings/URI from actuator related information (of endpoints/ methods with their details)
+http://localhost:2727/pms/actuator/matrics - to show list of all matrics [to show particular metrics details then just paste the matrics name to url like :
+	http://localhost:2727/pms/actuator/matrics/jvm.memory.used
+	or
+	http://localhost:2727/pms/actuator/matrics/jvm.threads.live
+]
+http://localhost:2727/pms/actuator/threaddump - to show running threads status at a particular moment. 
+http://localhost:2727/pms/actuator/caches/{cache_name_from_application.properties} - To show information about cache
+http://localhost:2727/pms/actuator/loggers - will show all loggers [if slf4j logger defined, it will also show]
+http://localhost:2727/pms/actuator/shutdown - [request from POST method] - to shutdown the application. Need to enable in application.properties file.
+
+
+
+application.properties
+-------------------------
+#actuator properties
+management.endpoints.shutdown.enabled=true #To shutdown the app - request must be through POST method.
+management.endpoints.web.exposure.include=*	#Bydefault value is none [* = to show all actuator services].
+management.endpoints.web.exposure.exclude=beans,caches 	#will not enable beans & caches services of actuator.
+management.endpoint.health.show-details=always	#Bydefault value is never [never|always|when-authorised]
+info.app.name=Sample Spring Rest App
+info.app.description=This is a Spring CRUD application.
+info.app.version=1.0
+
+
+Profiles
+==============
+We need to move application to Dev - Test - UAT - Prod. 
+These all instances mostly not having same configurations like DB, Cache, Logger etc. configuration/ application properties. It may be in Dev MySQl or in UAT it may be Oracle.
+
+So, application properties can be changed accordingly.
+
+application.properties - common properties should be defined here. [default properties] [MANDATORY]
+application-dev.properties - properties related to dev instance.
+application-test.properties - properties related to test instance.
+application-prod.properties - properties related to prod instance.
+
+src/main/resources/
+
+application.properties
+------------------------
+spring.profiles.active=dev | test | prod
+
+application-dev.properties
+-----------------------------
+spring.datasource.driver-class-name=mysql driver class
+spring.datasource.url=XXXXXXX
+
+
+application-test.properties
+-----------------------------
+spring.datasource.driver-class-name=oracle driver class
+spring.datasource.url=XXXXXXX
+
+
+application-prod.properties
+-----------------------------
+spring.datasource.driver-class-name=postgresql driver class
+spring.datasource.url=XXXXXXX
+
+
+- In a single yaml file, it can be defined multiple profiles
+application.yml
+-------------------
+server:
+	port: 6666
+	servlet:
+		context-path: /example
+spring: 
+	profiles:
+		active: dev
+	mvc: 
+		view:
+			prefix: /WEB-INF/views/
+			suffix: .jsp
+
+--- #three dashes(---) defines separation of yml file to provide other profiles by separating three dashes(---).
+spring:
+	profile: dev
+spring:
+	datasource:
+		driver-class-name: oracle
+		url: xxx
+		username: xxx
+		password: xxx
+---
+spring:
+	profile: test
+spring:
+	datasource:
+		driver-class-name: mysql
+		url: xxx
+		username: xxx
+		password: xxx
+---
+spring:
+	profile: prod
+spring:
+	datasource:
+		driver-class-name: postgressql
+		url: xxx
+		username: xxx
+		password: xxx
+
+
+- In a single application, properties & yml both files can be added.
+- first yml is loaded then properties file.
+- If same properties defined in both the files, properties file will override that because it is loaded later than yml.
+
+profiles-app
+---------------
+dependency - web
+
+package com.profiles.bean;
+@Component
+public class SampleBean {
+	
+	@Autowired
+	Environment env;
+
+	//@Value("${spring.app.name}")
+	//private String appName;
+
+	public String getData() {
+		//return appName;
+		return env.getProperty("sample.app.name"); //sample.app.name from yml
+	}
+}
+
+package com.profiles.controller 
+@RestController
+public class SampleController {
+
+	@Autowired
+	SampleBean sampleBean;
+
+	@GetMapping("/data")
+	public String showData() {
+		return sampleBean.getData();
+	}
+}
+
+src/main/resources
+
+application.properties
+-------------------------
+spring.app.name=xyz #this line requires during start the app
+spring.profiles.active=dev
+server.port=3434
+
+
+new - others - general file 
+
+application-dev.properties
+------------------------------
+spring.app.name=Dev Environment Application
+
+application-test.properties
+------------------------------
+spring.app.name=Test Environment Application
+
+application-prod.properties
+------------------------------
+spring.app.name=Prod Environment Application
+
+OR
+
+application.yml
+----------------
+spring:
+	profiles:
+		active: Test
+server:
+	port: 3434
+---
+spring:
+	profiles: dev
+sample:
+	app:
+		name: Dev Environment Application
+---
+spring:
+	profiles: Test
+sample:
+	app:
+		name: Test Environment Application
+---
+spring:
+	profiles: Prod
+sample:
+	app:
+		name: Prod Environment Application
+
+
+start app
+---------
+http://localhost:3434/data
+
+
+
+
 
 
 
