@@ -4155,12 +4155,157 @@ start app
 http://localhost:3434/data
 
 
+Microservices
+=================
+Why
+---------
+Presentation Layer + Business Layer + Data Access Layer + DB = Monolithic application produces 1 jar/war file
+- Downtime = In monolithic application, if a small change happens, need to compile & deploy entire application - It increases downtime of application(not available during deploy).
+- Load Balance = In monolithic application, if more requests are coming for a module business set, entire application goes down & maintenance issue occurs. 
+- Single Language = Monolithic application developed with a single language only.
+
+Features
+-------------
+- Microservice is an architectural style.[Initially NETFLIX used this style].
+	- Make application functionality independent & small. Communication between applications with HTTP protocols to share the data.
+	- individual maintenance/ development/ deployment is possible.
+	- Can be scaled up a particular application if large request/ load.[scaling particular service possible.]
+	
+
+- REST is also an architectural style.
 
 
 
+Scenarios 			Monolithic							Microservices
+------------			-------------------						---------------------
+Development - 		One Language							each service can be developed in diff language
+
+Testing - 			For any changes, full regression testing is required.	regression testing only for the particular microservice.
+
+packaging - 			single war							each service is a jar/war
+
+scalability - 		entire app is replicated on multiple servers.		scale only a particular service which is having more load.
+
+Minor change - 		Full rebuild & re deployment is required.			Only changed service is rebuild & redeployment.
 
 
+Develop Microservices :
+------------------------------
+CallDetails MS [CallDetails-Micro]
+Plan MS [Plan-Micro]
+Customer MS [Customer-Micro]
+Friend MS [Friend-Micro]
 
+Dependencies : Zuul, Eureka, Zipkin(Performance Service), Config Server
+
+1) CallDetails Microservice
+-------------------------------
+New - project
+
+Name: ms-calldetails
+GroupId:com.example
+ArtifactId:ms-calldetails
+version: 1.1
+
+dependencies : web, Spring Data JPA, MySQL Driver
+
+@SpringBootApplication
+public class MsCallDetailsApplication{
+	public static void main(String[] args){
+		SpringApplication.run(MsCallDetailsApplication.class, args);
+	}
+}
+
+package com.calldetails.controller;
+package com.calldetails.entity;
+package com.calldetails.dto;
+package com.calldetails.service;
+package com.calldetails.service.impl;
+package com.calldetails.repository;
+
+package com.calldetails.entity;
+@Entity
+public class CallDetails {
+	@Id
+	private Long callId;
+	private long calledBy;
+	private Long calledTo;
+
+	@Temporal(TemporalType.DATE)
+	private Date calledOn;
+
+	private Long durationInSeconds;
+}
+
+package com.calldetails.dto;
+public class CallDetailsDto {
+	
+	private Long callId;
+	private long calledBy;
+	private Long calledTo;
+	private Date calledOn;
+	private Long durationInSeconds;
+}
+
+package com.calldetails.repository;
+@Repository
+public interface CallDetailsRepository extends JpaRepository<CallDetails, java.lang.Long> {
+	List<CallDetails> findByCalledBy(Long phoneNumber);
+}
+
+package com.calldetails.service;
+public interface ICallDetailsService {
+	List<CallDetailsDto> readCallDetails(Long phoneNumber);
+}
+
+package com.calldetails.service.impl
+@Service
+public class CallDetailServiceImpl implements ICallDetailsService {
+	@Autowired
+	CallDetailsRepository repository;
+
+	@Override
+	public List<CallDetailsDto> readCallDetails(Long phoneNumber) {
+		List<CallDetails> callDetailsList = repository.findByCalledBy(phoneNumber);
+
+		List<CallDetailsDto> callDetailsDtoList = new ArrayList<>();
+
+		callDetailsList.forEach(callDetails -> {
+			CallDetailsDto dto = new CallDetailsDto();
+			BeanUtils.copyProperties(callDetails, dto);
+			callDetailsDtoList.add(dto);
+		});
+
+		return callDetailsDtoList;
+	}
+}
+
+package com.calldetails.cotroller
+@RestController
+public class CallDetailsRestController {
+	@Autowired
+	ICallDetailsService service;
+
+	@GetMapping("/{phoneNumber}")
+	public List<CallDetailsDto> getCallDetailsByPhoneNumber(@PathVariable Long phoneNumber) {
+		return service.readCallDetails(phoneNumber);
+	}
+}
+
+application.properties
+------------------------
+server.port=4141
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/calldetailsdb
+spring.datasource.username=root
+spring.datasource.password=root
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+
+#rootpath
+server.servlet.context-path=/calDetailsApi
 
 
 
