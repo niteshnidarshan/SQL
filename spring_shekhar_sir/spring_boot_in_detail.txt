@@ -4307,6 +4307,216 @@ spring.jpa.hibernate.ddl-auto=update
 #rootpath
 server.servlet.context-path=/calDetailsApi
 
+2) Plan Microservice
+------------------------
+Name: ms-plan
+package: com.plan
+dependencies: Spring Data JPA, web, MySQL
+
+com.plan.controller
+com.plan.entity
+com.plan.dao
+com.plan.dto
+com.plan.service
+com.plan.service.impl
+
+package com.plan;
+@SpringBootApplication
+public class MsPlansApplication{
+	public static void main(String[] args){
+		SpringApplication.run(MsCallDetailsApplication.class, args);
+	}
+}
+
+package com.plan.entity;
+@Entity
+@Table(name="PLANS")
+public class Plan {
+	@Id
+	@Column(length=15)
+	private Strings planId;
+	private String splanName;
+	private Integer validity;
+	private String description;
+}
+
+public class PlanDto {
+	private Strings planId;
+	private String splanName;
+	private Integer validity;
+	private String description;
+}
+
+@Repository
+public interface PlanRepository extends JpaRepository<Plan, String> {
+
+}
+
+public interface PlanService {
+	public List<PlanDto> getAllPlans();
+	public PlanDto getSpecificPlan(String planId);
+}
+
+@Service
+public class PlanServiceImpl implements PlanService {
+	@Autowired
+	PlanRepository planRepo;
+
+	@Override
+	public List<PlanDto> getAllPlans(){
+		List<Plan> planList = planRepo.findAll();
+		
+		List<PlanDto> planDtoList = new ArrayList<>();
+
+		for(Plan plan: planList){
+			PlanDto dto = new PlanDto();
+			BeanUtils.copyProperties(plan, dto);
+			planDtoList.add(dto);
+		}
+
+		return planDtoList;
+	}
+
+	@Override
+	public PlanDto getSpecificPlan(String planId) {
+		Optional<Plan> opt = planRepo.findById(planId);
+		Plan plan = opt.get();
+		PlanDto = new PlanDto();
+		BeanUtils.copyProperties(plan, dto);
+		return dto;
+	}
+
+}
+
+@RestController
+public class PlanRestController {
+	@Autowired
+	PlanService service;
+
+	@GetMapping("/browsPlans")
+	public List<PlanDto> getPlans() {
+		return service.getAllPlans();
+	}
+		
+	@GetMapping("/{planId}")
+	public PlanDto getSpecificPlan(@PathVariable String planId){
+		return service.getSpecificPlan(planId);
+	}
+}
+
+application.properties
+------------------------
+server.port=4242
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/plandb
+spring.datasource.username=root
+spring.datasource.password=root
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+
+#rootpath
+server.servlet.context-path=/PlanApi
+
+
+3) Friend Microservice
+--------------------------
+Name: ms-friend
+package: com.friend
+dependecies: Spring Data JPA, web, MySQL
+
+@Entity
+public class Friend {
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	private Integer id; 
+	private Long phoneNumber;
+	private Long friendNumber;
+}
+
+@Repository
+public interface FriendRepository extends JpaRepository<Friend, Integer> {
+
+	@Query(value="select count(*) from friend where phone_no=? and friend_no=?", nativeQuery=true)
+	Integer checkFriendContact(Long phoneNumber, Long friendNumber);
+
+	@Query(value="select friend_no from friend where phone_no=?", nativeQuery=true)
+	List<Long> findFriendsContactNumbers(Long phoneNumber);
+
+} 
+
+public interface FriendService {
+	public String addFriendService(Friend friend);
+	List<Long> readFriendsContacts(Long phoneNumber);
+}
+
+public class FriendServiceImpl implements FriendService {
+
+	@Autowired
+	FriendRepository repository;
+	
+	@Override
+	public String addFriendService(Friend friend) {
+		Integer count = repository.checkFriendContact(friend.getPhoneNumber(), friend.getFriendNumber());
+		if(count==0) {
+			repository.saveAndFlush(friend);
+			return "Friend contact is added!";
+		}
+		else {
+			return "Friend contact already exist!"
+		}
+	}
+
+	@Override
+	List<Long> readFriendsContacts(Long phoneNumber) {
+		return repository.findFriendsContactNumbers(phoneNumber);
+	}
+}
+
+@RestController
+public class FriendRestController {
+	@Autowired
+	FriendService service;
+
+	@PostMapping("/addFriend")
+	public String addFriend(@RequestBody Friend friend){
+		return service.addFriendService(friend);
+	}
+
+	@GetMapping("/{phoneNumber}")
+	public List<Long> getFriendContacts(@PathVariable Long phoneNumber){
+		return service.readFriendsContacts(phoneNumber);
+	}
+}
+
+application.properties
+------------------------
+server.port=4343
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/frienddb
+spring.datasource.username=root
+spring.datasource.password=root
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+
+#rootpath
+server.servlet.context-path=/FriendApi
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 arn:aws:s3:::nidarshan-s3/index.html
