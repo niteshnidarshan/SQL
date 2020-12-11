@@ -4506,7 +4506,138 @@ spring.jpa.hibernate.ddl-auto=update
 server.servlet.context-path=/FriendApi
 
 
+Customer Microservice
+------------------------
+Name: ms-customer
 
+/register - a new customer(phone, username, password, email, planId) 
+/login
+/view-profile
+
+package com.customer.controller;
+package com.customer.entity;
+package com.customer.dto;
+package com.customer.dao;
+package com.customer.repository;
+package com.customer.service;
+package com.customer.service.impl;
+
+@Entity
+public class Customer {
+	@Id
+	@Column(name="PHONE_NO")
+	private Long phoneNumber;
+
+	private String userName;
+	private String password;
+	private String email
+	private String planId;
+}
+
+public class CustomerDto {
+	private Long phoneNumber;
+	private String userName;
+	private String email
+	private String planId;
+	
+	private List<Long> friendsContactNumbers;
+	private PlanDto currentPlan;
+}
+
+public class PlanDto {
+	private Strings planId;
+	private String splanName;
+	private Integer validity;
+	private String description;
+}
+
+public class RegisterDto {
+	private Long phoneNumber;
+	private String userName;
+	private String password;
+	private String email
+	private String planId;
+}
+
+public class LoginDto {
+	private Long phoneNumber;
+	private String password;
+}
+
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
+	@Query(value="select count(*) from customer where phone_no =? and password=?", nativeQuery=true)
+	Integer checkLogin(Long phoneNumber, String password);
+}
+
+public interface CustomerService {
+	public boolean registerCustomer(RegisterDto, registerDto);
+	public boolean loginCustomer(LoginDto, loginDto);
+	public CustomerDto readCustomer(Long phoneNumber);
+}
+
+@Service
+public class CustomerServiceImpl {
+	@Autowired
+	CustomerRepository repository;
+
+	public boolean registerCustomer(RegisterDto, registerDto) {
+		if(repository.existById(registerDto.getPhoneNumber())==false){
+			Customer customer = new Customer();
+			BeanUtils.copyProperties(registerDto, customer);
+			repository.save(customer);
+			return true;
+		}else{
+			return false;
+		}
+	}
+	public boolean loginCustomer(LoginDto, loginDto) {
+		if(repository.checkLogin(loginDto.getPhoneNumber(), loginDto.getPassword())==1){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	public CustomerDto readCustomer(Long phoneNumber) {
+		Customer customer = repository.findById(phoneNumber).get();
+		CustomerDto dto = new CustomerDto();
+		BeanUtils.copyProperties(customer, dto);
+		return dto;
+	}
+}
+
+@RestController
+public class CustomerController {
+	
+	@Autowired
+	CustomerService service;
+
+	@Autowired
+	RestTemplate restTemplate;
+	
+	@PostMapping("/register")
+	public boolean addCustomer(@RequestBody RegisterDto registerDto){
+		return service.registerCustomer(registerDto);
+	}
+
+	@PostMapping("/login")
+	public boolean loginCustomer(@RequestBody LoginDto loginDto) {
+		return service.loginCustomer(loginDto);
+	}
+}
+
+@SpringBootApplication
+public class MsCustomerApplication {
+	psvm(String[] args){
+		SpringApplication.run(MsCustomerApplication.class, run);
+	}
+
+	@Bean
+	public RestTemplate restTemp() {
+		return new RestTemplate();
+	}
+}
 
 
 
