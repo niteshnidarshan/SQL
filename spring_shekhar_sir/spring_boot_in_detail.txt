@@ -4615,6 +4615,9 @@ public class CustomerController {
 
 	@Autowired
 	RestTemplate restTemplate;
+
+	private static String PLAN_URL = "http://localhost:4242/PlanApi/{planId}";
+	private static String FRIEND_URL = "http://localhost:4343/FriendApi/{phoneNumber}";
 	
 	@PostMapping("/register")
 	public boolean addCustomer(@RequestBody RegisterDto registerDto){
@@ -4624,6 +4627,23 @@ public class CustomerController {
 	@PostMapping("/login")
 	public boolean loginCustomer(@RequestBody LoginDto loginDto) {
 		return service.loginCustomer(loginDto);
+	}
+
+	@GetMapping("/viewProfile/{phoneNumber}") 
+	public CustomerDto showProfile(@PathVariable Long phoneNumber) {
+		
+		CustomerDto customerDto = service.readCustomer(phoneNumber);
+		
+		//Calling ms-plan for plan details
+		PlanDto planDto = restTemplate.getForObject(PLAN_URL, PlanDto.class, customerDto.getPlanId);//url, response-type, uri-variable	 
+		customerDto.setCurrentPlan(planDto);
+		
+		//Calling ms-friend
+		List<Long> friendsContactNumber = restTemplate.getForObject(FRIEND_URL, List.class, phoneNumber);
+		customerDto.setFriendsContactNumers(friendsContactNumbers);
+
+		return customerDto;
+		
 	}
 }
 
@@ -4639,9 +4659,44 @@ public class MsCustomerApplication {
 	}
 }
 
+application.properties
+------------------------
+server.port=4444
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/customerdb
+spring.datasource.username=root
+spring.datasource.password=root
+
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+
+#rootpath
+server.servlet.context-path=/CustomerApi
 
 
+UI: with jsp & mvc
+===================
+index.jsp
+----------
+New Customer: SignUp ---> addCustomer.jsp
+Existing Customer: SignIn  ---> login.jsp
 
+addCustomer.jsp
+-------------------
+user name, password, phoneNumber, email, choosePlan dropdown
+submit_button --> mvc_controller ---> customer_microservice/register_end_point
+
+login.jsp
+----------
+phone, password
+submit --> mvc_controller ---> customer_microservice/login
+
+success_login ---> home.jsp [customer_dashboard]
+
+home.jsp
+---------
+dashbord icons for - add friend, view plans, etc...
 
 
 
