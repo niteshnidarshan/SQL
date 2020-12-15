@@ -4698,6 +4698,184 @@ home.jsp
 ---------
 dashbord icons for - add friend, view plans, etc...
 
+spring-boot
+-----------
+name: ui-app
+package: com.ui
+dependencies: web, validation, jasper, jstl
+
+groupId: org.apache.tomcat.embed & jstl
+artifact: tomcat-embed-jasper & jstl
+
+create folder: src/man/webapp/WEB-INF/views
+
+@SpringBootApplication
+@Bean
+public RestTemplate restTemplate(){
+	return new RestTemplate();
+}
+
+package com.ui.controller;
+@Controller
+public class UIController {
+	private static String ALLPLANS_URL = "http://localhost:4242/PlanApi/browsPlans";
+	private static String REGISTER_URL = "---";
+	private static String LOGIN_URL = "---";
+	private static String PROFILE_URL = "---";
+
+	@Autowired
+	RestTemplate restTemplate;
+
+	@GetMapping("/index")
+	public String getIndexPage(){
+		return "index";
+	}
+
+	private List<PlanDto> getPlans() {
+		ParameterizedTypeReference<List<PlanDto>> typeRef = new ParameterizedTypeReference<List<PlanDto>>(){};
+		ResponseEntity<List<PlanDto>> re = restTemplate.exchange(ALLPLANS_URL, HttpMethod.GET, null, typeRef);
+		List<PlanDto> plansList = re.getBody();
+		return planList; 
+	}
+
+	@GetMapping("/registerPage")
+	public String getRegisterPage(Model model){
+		RegisterBean registerBean= new RegisterBean();
+		registerBean.setPlanList(getPlans());
+		model.addAttribute("registerBean", registerBean);
+		return "register";
+	}
+
+	@PostMapping("/addCustomer")
+	public String addCustomer(@Valid @ModelAttribute RegisterBean registerBean, BindingResult result, Model model) {
+		if(result.hasError()){
+			//call microservice-planDetails
+			registerBean.setPlanList(getPlans());
+			model.addAttribute("registerBean", registerBean);
+			return "register";
+		}
+
+		//call microservice-customer
+		boolean flag = restTemplate.postForObject(REGISTER_URL, registerBean, Boolean.class);
+		if(flag==true){
+			String message= "Customer is succesfully registered!";
+			model.setAttribute("message", message);
+			return "index";
+		}
+		else{
+			String message= "Another Customer is already registered with this phone number";
+			model.setAttribute("message", message);
+			return "register";
+		}
+	}
+
+	@GetMapping("/loginPage")
+	public String getLoginPage() {
+		return "login"
+	}
+	
+	@GetMapping("/loginCustomer")
+	public String loginCustomer(@RequestParam Long phoneNo, @RequestParam String password, Model model, HttpServletRequest request) {
+		Login login = new Login();
+		login.setPhoneNumber(phoneNo);
+		login.setPassword(password);
+
+		boolean flag = retTemplate.postForObject(LOGIN_URL, login, Boolean.class);
+
+		if(flag==true){
+			HttpSession session = request.getSession();
+			session.setAttribute("phoneNumber", phoneNo);
+			return "Home";
+		}
+		else {
+			model.addAttribute("message", "Bad credentials!");
+			return "login";
+		}
+	}
+}
+
+
+
+package com.ui.model
+public class RegisterBean {}
+
+public class LoginBean {}
+
+public class RegisterBean {
+	@NotNull
+	private Long phoneNumber;
+	private String username;
+	private String password;
+	private String email;
+	private String planId;
+	private List<PlanDto> planList;
+}
+
+
+index.jsp
+-----------
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<c:if test= "${message ne null}">
+	<c:out value="${message}"/>
+</c:if>
+<hr>
+<a href="registerPage">SignUp</a>
+<br>
+<a href="loginPage">SignIn</a>
+
+register.jsp
+----------------
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<c:if test= "${message ne null}">
+	<c:out value="${message}"/>
+</c:if>
+<hr>
+<form:form action="addCustomer" method="post" modelAttribute="registerBean">
+	<table>
+		<form:input path="phoneNumber"/>
+		<form:errors path="phoneNumber"/>
+
+		<form:password path="password"/>
+		<form:errors path="password"/>
+		---
+		<form:select path="planId">
+			<form:option value="">----Select----<form:option>
+			<form:options item="${registerBean.palnList}" itemValue="planId" itemLabel="palnId"/>
+		</form:select>
+		<form:errors path="planId">	
+
+	
+		<input type="submit" value="REGISTER">		
+
+	</table>
+</form:form>
+
+login.jsp
+------------
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<c:if test= "${message ne null}">
+	<c:out value="${message}"/>
+</c:if>
+<hr>
+<form action="loginCustomer" method="post">
+	<input type="text" name="phoneNo">
+	<input type="text" name="password">
+
+	<input type="submit" value="login">
+</form
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
