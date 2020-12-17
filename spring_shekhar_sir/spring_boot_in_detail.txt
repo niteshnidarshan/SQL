@@ -4564,6 +4564,11 @@ public class LoginDto {
 	private String password;
 }
 
+public class CallDetailsDto {
+
+}
+
+
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 	@Query(value="select count(*) from customer where phone_no =? and password=?", nativeQuery=true)
@@ -4722,6 +4727,7 @@ public class UIController {
 	private static String REGISTER_URL = "---";
 	private static String LOGIN_URL = "---";
 	private static String PROFILE_URL = "---";
+	private static String CALLDETAILS_URL = "http://localhost:4141/CallDetailsApi/{phoneNumber}";
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -4809,6 +4815,18 @@ public class UIController {
 		List<PlanDto> planDtoList = re.getBody();
 		model.addAttribute("planDtoList", planDtoList);
 		return "showPlans";
+	}
+	
+	@GetMapping("/calldetails")
+	public String getCallDetails(Model model, HttpServletRequest request){
+		HttpSession session = request.getSession();
+		Long phoneNo = (Long)session.getAttribute("phoneNumber");
+
+		ParameterizedTypeReference<List<CallDetailsDto>> typeRef = new ParameterizedTypeReference<List<CallDetailsDto>>(){};
+		ResponseEntity<List<CallDetailsDto>> re = restTemplate.exchange(CALLDETAILS_URL, HttpMethod.GET, null, typeRef, phoneNo);
+		List<CallDetailsDto> dto = re.getBody();
+		model.addAttribute("callDetailsDtoList",dto);
+		return "showCallDetails";
 	}
 }
 
@@ -4944,6 +4962,20 @@ Table
 			---
 			---
 
+showCallDetails.jsp
+------------------------
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<c:if test="${!empty callDetailsDtoList}">
+	<c:forEach items="${callDetailsDtoList}" var="callDetailsDto">
+		<tr>
+			<td><c:out value="${callDetailsDtoList.calledBy}"/></td>
+			<td><c:out value="${callDetailsDtoList.calledTo}"/></td>
+			<td><c:out value="${callDetailsDtoList.calledOn}"/></td>
+			<td><c:out value="${callDetailsDtoList.durationInSeconds}"/></td>
+		</tr>
+	</c:forEach>
+</c:if>
+
 
 src/main/resources/messages.properties
 NotNull.registerBean.phoneNumber=PhoneNo is Required.
@@ -4957,6 +4989,78 @@ server.port=9890
 spring.mvc.view.prefix=/WEB-INF/views/
 spring.mvc.view.suffix=.jsp
 server.servlet.context-path=/UI
+
+
+Cloud
+============
+Cloud enabled - Able to just deploy microservices on cloud platform.
+
+Cloud native - Using the advantages/features of cloud platform like load-balancing, service-registry, etc...
+
+- Making the microservices as cloud native, Spring provided some components like Netflix etc...
+
+For e.g.
+-----------
+- Customer-microservice is making a call to Friend-microservices.
+
+	- [two instances are running of ms-friend - means running on two different servers.]
+
+	ms-customer[single instance] ---> ms-friend [instance-1 on port-x]
+						 ---> ms-friend [instance-2 on port-y]
+
+
+	- Request from ms-customer has to be load balanced (handling request load) among the ms-friend instances.
+	- When there is huge request loads - an application can be load balanced/ running on several instances.
+
+
+Server side Load balancer
+-----------------------------
+	- Application running on multiple servers, to load balance requests to different servers, server side load balancer system requires, which forwards requests among the running instances.
+
+		
+							   		-------> server1/node1
+	requests -----> server side load balancer	-------> server2/node2
+							   		-------> server3/node3
+
+	
+	- server side load balancer generally uses round robin algorithm.
+	
+	disadvantages
+	-----------------
+	- If this load balancer fails, then request can not be reach on nodes, but application is up
+	- extra cost to configure load balancer instance.
+	- extra networks latency(time to reach nodes) through load balancer to nodes.
+	
+
+Client side load balancer
+------------------------------
+	- spring cloud has resolved these by introducing "Client side load balancer".
+	- separate server side load balancer is not required.
+	
+	
+	
+								-------> server1/node1
+	[client--client_side_load_balancer] 	-------> server2/node2
+								-------> server3/node3
+
+
+	- Here client should know all the running server/nodes informations. 
+		
+Spring cloud component
+--------------------------
+	"spring cloud netflix ribbon" - It is a client side load balancer/ load balancing library.
+
+	
+					-------> friend instance server1/node1
+	[ms-customer+ribbon] 	-------> friend instance server2/node2
+					-------> friend instance server3/node3
+
+
+
+	- need to add ribbon library on ms-customer
+		groupId = org.springframework.cloud
+		artifactId = spring-cloud-starter-netflix-ribbon
+
 
 
 
