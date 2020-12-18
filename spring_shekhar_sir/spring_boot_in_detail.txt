@@ -5056,10 +5056,57 @@ Spring cloud component
 					-------> friend instance server3/node3
 
 
+	- dependencies : Ribbon, Spring Web, Eureka server 
+		[Ensure in pom.xml, spring-cloud.version tag is added to properties tag & dependencyManagement & repository of cloud tag also must be there.]
 
 	- need to add ribbon library on ms-customer
 		groupId = org.springframework.cloud
 		artifactId = spring-cloud-starter-netflix-ribbon
+
+
+	MsCustomerApplication.java - Register load balance with RestTemplate
+
+	@Bean
+	@LoadBalanced
+	public RestTemplate restTempl() {
+		//Load balanced RestTemplate
+		return new RestTemplates();
+	}
+
+ 	In CustomerRestController.java
+
+	@RestController
+	@RibbonClient(name="custRibbon") //From this rest controller all the request will be deligate
+	public class CustomerRestController {
+	
+		@Autowired
+		@Qualifier("restTemp")
+		RestTemplate restTemplate;
+
+		@Autowire
+		@Qualifier("restTempl")
+		RestTemplate loadBalancedRestTemplate;
+
+		private static String FRIEND_URL = "http://custoribbon/FriendApi/{phoneNumber}"; //No particular port-ribbon name will deligate to the different load balanced server instances.
+
+		---
+
+		
+
+	}
+
+	application.properties
+	-----------------------
+	custoribbon.ribbon.eureka.enabled=false #//service descovery 
+	custoribbon.ribbon.listOfServers=http://localhost:4343,http://localhost:6363 #different load balanced server instances of friendsApi list
+	
+
+Start ms-friend in two different ports: 4343 & 6363
+------------------------------------------------------
+1) right click on app - Run As - Run Application - it will run on 4343.
+2) right click on app - Run As - Run Configuration - left side springBootApp-choose ms-friend - change name at right side then click on environment - add - Name=server.port & Value=6363. start.
+
+start ms-customer app.
 
 
 
