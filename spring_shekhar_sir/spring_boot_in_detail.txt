@@ -5109,6 +5109,57 @@ Start ms-friend in two different ports: 4343 & 6363
 start ms-customer app.
 
 
+Watch microservices class-1(from sdd), class-2 & class-3.
+
+Hystrix
+==========
+Resilience
+------------
+
+	Service1 ==> Service2 ==> Service3
+
+	Suppose service1 is sending requests to Service2, further Service2 requires Service3 to fulfill requests, but Service3 is working slow/down.
+
+	So, Service1 is keep on requesting to Service2 but Service2 is not able to fulfill request due to Service3 is down.
+	
+	
+	To resolve such situation, we need to make the resource system resilient.
+		- Open a circuit to stop sending request to Service3 within a time period.
+
+
+	- When a service a working slow/ down then no need to approach this service to prevent failures/difficulties/errors.
+
+	Here, need to apply circuit breaker pattern - which means within a given timeframe if these many request are sent and number of request are reached to threshhold value & if this percentage of request are failed, then we need to open a circuit to stop sending request.
+
+	If No of request - 20,
+	Threshhold - 60%(If 60% of request failed)
+	then, no need to open a circuit for a time period(Window Time) to stop sending request. And instead of calling that down service, need to call a callback method to execute default message. Once the circuit is opened then it will check internally that request is up or not. And once service up, circuit will be closed
+
+	- To achieve this, Hystrix API is used. It provides the resilience to the service call.
+
+	For e.g.,
+	Customer-ms ----calling-----> friend-ms
+
+	1) Define a hystric service & hystrix command in customer
+	2) Define a callback method in customer
+	3) Dependency in customer pom.xml - spring-cloud-starter-netflix-hystrix
+	4) Add Hystrix properties application.properties
+	4) @EnableCircuitBreaker in customer
+
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+
+	- Define a hystrix command as a Bean
+		
+	import com.customer.breaker;
+	@Component
+	public class CircuitBreaker {
+		
+	}
+	
+
+API Gateway
+=================
 
 
 
